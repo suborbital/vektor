@@ -1,4 +1,4 @@
-package xapi
+package x
 
 import (
 	"fmt"

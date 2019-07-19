@@ -1,4 +1,4 @@
-package xapi
+package x
 
 // Options are the available options for Server
 type Options struct {

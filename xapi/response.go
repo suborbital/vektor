@@ -1,4 +1,4 @@
-package xapi
+package x
 
 import (
 	"encoding/json"
@@ -12,14 +12,19 @@ type Response struct {
 	body   interface{}
 }
 
-// R returns a filled-in response
-func R(status int, body interface{}) Response {
+// Reply returns a filled-in response
+func Reply(status int, body interface{}) Response {
 	r := Response{
 		status: status,
 		body:   body,
 	}
 
 	return r
+}
+
+// R is `Reply` for those who prefer terse code
+func R(status int, body interface{}) Response {
+	return Reply(status, body)
 }
 
 // TODO: add convenience helpers for status codes

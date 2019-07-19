@@ -1,25 +1,17 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 	"github.com/taask/xeno/xapi"
 )
 
 func main() {
-	server := xapi.New(
-		xapi.UseDomain("scim.docker.cohix.ca"),
-		xapi.UseHTTPPortFromEnv("PORT"),
+	server := x.New(
+		x.UseDomain("scim.docker.cohix.ca"),
+		x.UseHTTPPortFromEnv("PORT"),
 	)
 
-	server.GET("/f", xapi.With(func(r *http.Request, params httprouter.Params) (interface{}, error) {
-		return xapi.R(200, "gotcha"), nil
-	}))
-
-	server.GET("/nf", xapi.With(func(r *http.Request, params httprouter.Params) (interface{}, error) {
-		return nil, xapi.E(http.StatusNotFound, "Not Found")
-	}))
+	server.GET("/f", x.With(HandleFound))
+	server.GET("/nf", x.With(HandleNotFound))
 
 	server.Start()
 }

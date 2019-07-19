@@ -1,6 +1,6 @@
 # Xeno API
 
-`xapi` is the Xeno cog that allows for easy development of API servers.
+`x` is the Xeno cog that allows for easy development of API servers.
 
 Features:
 

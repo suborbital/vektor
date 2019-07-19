@@ -10,9 +10,9 @@ Xeno consists of modules, or "cogs" that can be used to help you build your web 
 
 ### In development:
 
-**Xeno API** ( [start here](/xapi/README.md) )
+**Xeno API** ( [start here](/x/README.md) )
 
-The `xapi` cog will help quickly build API services. It includes secure-by default settings, lots of customizability, and helpers galore.
+The `x` cog will help quickly build API services. It includes secure-by default settings, lots of customizability, and helpers galore.
 
 
 ### Planned:

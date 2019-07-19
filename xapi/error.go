@@ -1,4 +1,4 @@
-package xapi
+package x
 
 import (
 	"encoding/json"
@@ -15,14 +15,19 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%d: %s", e.Status, e.Message)
 }
 
-// E returns an error with status and message
-func E(status int, message string) Error {
+// Err returns an error with status and message
+func Err(status int, message string) Error {
 	e := Error{
 		Status:  status,
 		Message: message,
 	}
 
 	return e
+}
+
+// E is Err for those who like terse code
+func E(status int, message string) Error {
+	return Err(status, message)
 }
 
 // converts _something_ into bytes, best it can:
