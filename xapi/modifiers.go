@@ -44,3 +44,12 @@ func UseHTTPPortFromEnv(key string) OptionsModifier {
 		return o
 	}
 }
+
+// UseLogger provides a new logger to be used
+func UseLogger(l Logger) OptionsModifier {
+	return func(o Options) Options {
+		o.Logger = l
+
+		return o
+	}
+}

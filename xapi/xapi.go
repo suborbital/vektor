@@ -15,6 +15,7 @@ type Server struct {
 	// but Handler controls the ServeHTTP function
 	*Handler
 	server  *http.Server
+	log     Logger
 	options Options
 }
 
@@ -36,6 +37,7 @@ func New(opts ...OptionsModifier) *Server {
 	s := &Server{
 		Handler: handler,
 		server:  server,
+		log:     options.Logger,
 		options: options,
 	}
 
@@ -45,9 +47,11 @@ func New(opts ...OptionsModifier) *Server {
 // Start starts the server listening
 func (s *Server) Start() error {
 	if s.options.UseHTTP {
+		s.log.Info("starting http server on", s.options.HTTPPort)
 		return s.server.ListenAndServe()
 	}
 
+	s.log.Info("starting server on :443, serving domain", s.options.Domain)
 	return s.server.ListenAndServeTLS("", "")
 }
 

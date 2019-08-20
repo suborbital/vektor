@@ -9,12 +9,13 @@ import (
 // HandlerFunc is the x version of http.HandlerFunc
 // instead of exposing the ResponseWriter, the function instead returns
 // a body and an error, which are handled as described in `With` below
-type HandlerFunc func(*http.Request, httprouter.Params) (interface{}, error)
+type HandlerFunc func(Ctx, *http.Request) (interface{}, error)
 
 // Handler handles the responses on behalf of the server
 type Handler struct {
 	*httprouter.Router
 	middlewares []http.HandlerFunc
+	logger      Logger
 }
 
 //ServeHTTP serves HTTP requests
@@ -44,7 +45,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // TODO: determine if we want to use a different type for the params
 func With(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		resp, err := inner(r, params)
+		resp, err := inner(ctx, r)
 		if err != nil {
 			status, body := errorOrOtherToBytes(err)
 			w.WriteHeader(status)
