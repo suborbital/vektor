@@ -1,7 +1,7 @@
 package main
 
 import (
-	g "github.com/suborbital/gust/gapi/go/server"
+	g "github.com/suborbital/gust/gapi/server"
 )
 
 func main() {
