@@ -6,7 +6,7 @@ import (
 
 func main() {
 	server := g.New(
-		g.UseDomain("scim.docker.cohig.ca"),
+		g.UseDomain("scim.docker.cohix.ca"),
 		g.UseHTTPPortFromEnv("PORT"),
 	)
 
