@@ -1,4 +1,4 @@
-package x
+package server
 
 // Options are the available options for Server
 type Options struct {

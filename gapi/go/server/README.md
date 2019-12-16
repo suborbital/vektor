@@ -1,6 +1,6 @@
-# Xeno API
+# gust API
 
-`x` is the Xeno cog that allows for easy development of API servers.
+`x` is the gust cog that allows for easy development of API servers.
 
 Features:
 

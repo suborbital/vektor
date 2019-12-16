@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	x "github.com/taask/xeno/xapi"
 )
 
 // HandleFound returns 200

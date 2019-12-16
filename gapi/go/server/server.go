@@ -1,4 +1,4 @@
-package x
+package server
 
 import (
 	"crypto/tls"
@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-// Server represents a Xeno API server
+// Server represents a gust API server
 type Server struct {
 	// Server embeds Handler, which embeds httprouter.Router,
 	// so Server inherits all of httprouter.Router's convenience funcs,
@@ -18,7 +18,7 @@ type Server struct {
 	options Options
 }
 
-// New creates a new Xeno API server
+// New creates a new gust API server
 func New(opts ...OptionsModifier) *Server {
 	options := defaultOptions()
 
