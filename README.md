@@ -11,7 +11,7 @@ We see Go as the best language to build web APIs and rich backend services, and 
 
 Rust is incredibly memory and compute efficient, and is therefore well suited for realtime, high-throughput, and batch data tasks, so GusT's Rust components help in building those kinds of applications, while integrating with GusT's Go backend components. 
 
-TypeScript is a well-loved and powerful language for building web apps, and so GusT's TypeScript components allow you to tie your webapps into your GusT-build backend Go and Rust services to make your frontend code responsive and easily maintainable.
+TypeScript is a well-loved and powerful language for building web apps, and so GusT's TypeScript components allow you to tie your webapps into your GusT-built backend Go and Rust services to make your frontend code responsive and easily maintainable.
 
 GusT consists of components that can be used to help you build your web apps and services. GusT components can be used alone or together. Below is a list of in-development and planned components.
 
