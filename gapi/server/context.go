@@ -16,7 +16,7 @@ type Ctx struct {
 }
 
 // NewCtx creates a new Ctx
-func NewCtx(log Logger, params httprouter.Params) Ctx {
+func NewCtx(log glog.Logger, params httprouter.Params) Ctx {
 	ctx := Ctx{
 		Context: context.Background(),
 		Log:     log,
