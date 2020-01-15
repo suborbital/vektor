@@ -1,20 +1,23 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/suborbital/gust/glog"
 )
 
 // HandlerFunc is the gapi version of http.HandlerFunc
 // instead of exposing the ResponseWriter, the function instead returns
 // an object and an error, which are handled as described in `With` below
-type HandlerFunc func(*http.Request, httprouter.Params) (interface{}, error)
+type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
 
 // Handler handles the responses on behalf of the server
 type Handler struct {
 	*httprouter.Router
 	middlewares []http.HandlerFunc
+	getLogger   func() glog.Logger
 }
 
 //ServeHTTP serves HTTP requests
@@ -22,10 +25,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler, params, _ := h.Lookup(r.Method, r.URL.Path)
 
 	if handler != nil {
+		h.getLogger().Info(r.Method, r.URL.String())
 		// TODO: add middlewares here
 
 		handler(w, r, params)
 	} else {
+		h.getLogger().Debug("not handled:", r.Method, r.URL.String())
+
 		// let httprouter handle the fallthrough cases
 		h.Router.ServeHTTP(w, r)
 	}
@@ -43,19 +49,23 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // - any other error object (status 500 and error.Error() are written to w)
 //
 // TODO: determine if we want to use a different type for the params
-func With(inner HandlerFunc) httprouter.Handle {
+func (h *Handler) With(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		resp, err := inner(r, params)
-		if err != nil {
-			status, body := errorOrOtherToBytes(err)
-			w.WriteHeader(status)
-			w.Write(body)
-			return
-		}
+		var status int
+		var body []byte
 
-		status, body := responseOrOtherToBytes(resp)
+		ctx := NewCtx(h.getLogger(), params)
+
+		resp, err := inner(r, ctx)
+		if err != nil {
+			status, body = errorOrOtherToBytes(err)
+		} else {
+			status, body = responseOrOtherToBytes(resp)
+		}
 
 		w.WriteHeader(status)
 		w.Write(body)
+
+		h.getLogger().Debug("handled", r.Method, r.URL.String(), fmt.Sprintf("(%d)", status))
 	}
 }

@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 	"os"
+
+	"github.com/suborbital/gust/glog"
 )
 
 // OptionsModifier takes an options struct and returns a modified Options struct
@@ -40,6 +42,24 @@ func UseInsecureHTTPWithEnvPort(envKey string) OptionsModifier {
 			o.UseHTTP = true
 			o.HTTPPort = fmt.Sprintf(":%s", port)
 		}
+
+		return o
+	}
+}
+
+// UseLogger allows a custom logger to be used
+func UseLogger(logger glog.Logger) OptionsModifier {
+	return func(o Options) Options {
+		o.Logger = logger
+
+		return o
+	}
+}
+
+// UseAppName allows an app name to be set (for vanity only, really....)
+func UseAppName(name string) OptionsModifier {
+	return func(o Options) Options {
+		o.AppName = name
 
 		return o
 	}

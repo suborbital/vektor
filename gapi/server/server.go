@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/suborbital/gust/glog"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -31,6 +32,9 @@ func New(opts ...OptionsModifier) *Server {
 	handler := &Handler{
 		Router:      httprouter.New(),
 		middlewares: nil,
+		getLogger: func() glog.Logger {
+			return options.Logger
+		},
 	}
 
 	server := createServer(options, handler)
@@ -46,6 +50,10 @@ func New(opts ...OptionsModifier) *Server {
 
 // Start starts the server listening
 func (s *Server) Start() error {
+	if s.options.AppName != "" {
+		s.options.Logger.Info("starting", s.options.AppName, "...")
+	}
+
 	if s.options.UseHTTP {
 		return s.server.ListenAndServe()
 	}
