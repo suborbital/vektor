@@ -4,12 +4,14 @@ import (
 	"context"
 
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/suborbital/gust/glog"
 )
 
 // Ctx serves a similar purpose to context.Context, but has some typed fields
 type Ctx struct {
 	context.Context
-	Log    Logger
+	Log    glog.Logger
 	Params httprouter.Params
 }
 

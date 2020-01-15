@@ -22,6 +22,8 @@ type Server struct {
 func New(opts ...OptionsModifier) *Server {
 	options := defaultOptions()
 
+	// loop through the provided options and apply the
+	// modifier function to the options object
 	for _, mod := range opts {
 		options = mod(options)
 	}

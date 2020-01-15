@@ -49,12 +49,15 @@ func responseOrOtherToBytes(data interface{}) (int, []byte) {
 		realData = r.body
 	}
 
+	// if data is []byte or string, return it as-is
 	if b, ok := realData.([]byte); ok {
 		return statusCode, b
 	} else if s, ok := realData.(string); ok {
 		return statusCode, []byte(s)
 	}
 
+	// otherwise, assume it's a struct of some kind,
+	// so JSON marshal it and return it
 	json, err := json.Marshal(realData)
 	if err != nil {
 		return 500, []byte(errors.Wrap(err, "failed to json Marshal response struct").Error()) // TODO: make this error reporting better

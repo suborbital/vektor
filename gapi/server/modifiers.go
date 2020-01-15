@@ -28,13 +28,13 @@ func UseInsecureHTTP(port int) OptionsModifier {
 	}
 }
 
-// UseHTTPPortFromEnv sets the server to run in
+// UseInsecureHTTPWithEnvPort sets the server to run in
 // insecure HTTP mode serving on the port
 // indicated by the `key` env var,
 // **only if it is set**
-func UseHTTPPortFromEnv(key string) OptionsModifier {
+func UseInsecureHTTPWithEnvPort(envKey string) OptionsModifier {
 	return func(o Options) Options {
-		port, usePort := os.LookupEnv(key)
+		port, usePort := os.LookupEnv(envKey)
 		if usePort {
 			o.Domain = ""
 			o.UseHTTP = true

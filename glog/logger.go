@@ -1,4 +1,4 @@
-package server
+package glog
 
 // Logger represents an object that is considered a logger
 type Logger interface {

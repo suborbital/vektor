@@ -7,7 +7,7 @@ import (
 func main() {
 	server := g.New(
 		g.UseDomain("scim.docker.cohix.ca"),
-		g.UseHTTPPortFromEnv("PORT"),
+		g.UseInsecureHTTPWithEnvPort("PORT"),
 	)
 
 	server.GET("/f", g.With(HandleFound))

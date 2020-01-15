@@ -1,14 +1,14 @@
 # gust API
 
-`x` is the gust cog that allows for easy development of API servers.
+`gapi` is the gust component that allows for easy development of API servers in Go.
 
 Features:
 
 - HTTPS by default using LetsEncrypt
 - Easy configuration of CORS
-- Built-in logging
+- Built in logging
 - Authentication plug-in point
-- Gorilla Mux built in
+- Fast HTTP router built in
 
 Planned:
 - Rate limiter
