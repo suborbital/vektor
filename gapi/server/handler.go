@@ -6,9 +6,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// HandlerFunc is the x version of http.HandlerFunc
+// HandlerFunc is the gapi version of http.HandlerFunc
 // instead of exposing the ResponseWriter, the function instead returns
-// a body and an error, which are handled as described in `With` below
+// an object and an error, which are handled as described in `With` below
 type HandlerFunc func(*http.Request, httprouter.Params) (interface{}, error)
 
 // Handler handles the responses on behalf of the server
@@ -34,13 +34,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // With returns an HTTP HandlerFunc that uses `inner` to handle the request
 // inner returns a body and an error,
 // the body can can be:
-// an x.Response object (status and body are written to w)
-// []byte (written directly to w, status 200)
-// a struct (marshalled to JSON and written to w, status 200)
+// - a gapi.Response object (status and body are written to w)
+// - []byte (written directly to w, status 200)
+// - a struct (marshalled to JSON and written to w, status 200)
 //
 // the error can be:
-// an x.Error type (status and message are written to w)
-// any other error object (status 500 and error.Error() are written to w)
+// - a gapi.Error type (status and message are written to w)
+// - any other error object (status 500 and error.Error() are written to w)
+//
 // TODO: determine if we want to use a different type for the params
 func With(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
