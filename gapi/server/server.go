@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -37,7 +38,7 @@ func New(opts ...OptionsModifier) *Server {
 		},
 	}
 
-	server := createServer(options, handler)
+	server := createGoServer(options, handler)
 
 	s := &Server{
 		Handler: handler,
@@ -61,15 +62,23 @@ func (s *Server) Start() error {
 	return s.server.ListenAndServeTLS("", "")
 }
 
-func createServer(options Options, handler http.Handler) *http.Server {
-	if options.UseHTTP {
-		return httpServerWithPort(options.HTTPPort, handler)
+// AddGroup adds a group of handlers
+func (s *Server) AddGroup(group *RouteGroup) {
+	for _, r := range group.routeHandlers() {
+		fullPath := fmt.Sprintf("%s%s", ensureLeadingSlash(group.routePrefix()), ensureLeadingSlash(r.Path))
+		s.Handle(r.Method, fullPath, r.Handler)
 	}
-
-	return tlsServerWithDomain(options.Domain, handler)
 }
 
-func tlsServerWithDomain(domain string, handler http.Handler) *http.Server {
+func createGoServer(options Options, handler http.Handler) *http.Server {
+	if options.UseHTTP {
+		return goHTTPServerWithPort(options.HTTPPort, handler)
+	}
+
+	return goTLSServerWithDomain(options.Domain, handler)
+}
+
+func goTLSServerWithDomain(domain string, handler http.Handler) *http.Server {
 	m := &autocert.Manager{
 		Cache:      autocert.DirCache("~/.autocert"),
 		Prompt:     autocert.AcceptTOS,
@@ -87,7 +96,7 @@ func tlsServerWithDomain(domain string, handler http.Handler) *http.Server {
 	return s
 }
 
-func httpServerWithPort(port string, handler http.Handler) *http.Server {
+func goHTTPServerWithPort(port string, handler http.Handler) *http.Server {
 	s := &http.Server{
 		Addr:    port,
 		Handler: handler,

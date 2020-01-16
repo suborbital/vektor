@@ -15,5 +15,14 @@ func main() {
 	server.POST("/f", server.With(HandleFound))
 	server.GET("/nf", server.With(HandleNotFound))
 
+	group := g.Group("/api")
+	group.GET("/me", server.With(HandleMe))
+
+	group2 := g.Group("/v2")
+	group2.GET("/you", server.With(HandleYou))
+
+	group.AddGroup(group2)
+	server.AddGroup(group)
+
 	server.Start()
 }

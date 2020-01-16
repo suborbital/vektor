@@ -8,7 +8,7 @@ import (
 	"github.com/suborbital/gust/glog"
 )
 
-// HandlerFunc is the gapi version of http.HandlerFunc
+// HandlerFunc is the gapi version of http.HandlerFinc
 // instead of exposing the ResponseWriter, the function instead returns
 // an object and an error, which are handled as described in `With` below
 type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
@@ -22,6 +22,7 @@ type Handler struct {
 
 //ServeHTTP serves HTTP requests
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// check to see if the router has a handler for this path
 	handler, params, _ := h.Lookup(r.Method, r.URL.Path)
 
 	if handler != nil {
@@ -48,7 +49,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // - a gapi.Error type (status and message are written to w)
 // - any other error object (status 500 and error.Error() are written to w)
 //
-// TODO: determine if we want to use a different type for the params
 func (h *Handler) With(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		var status int
