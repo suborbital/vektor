@@ -8,9 +8,10 @@ import (
 
 // RouteGroup represents a group of routes
 type RouteGroup struct {
-	prefix          string
-	routes          []routeHandler
-	middlewareFuncs []Middleware
+	prefix     string
+	routes     []routeHandler
+	middleware []Middleware
+	afterware  []Middleware
 }
 
 type routeHandler struct {
@@ -22,9 +23,9 @@ type routeHandler struct {
 // Group creates a group of routes with a common prefix and middlewares
 func Group(prefix string, middlewares ...Middleware) *RouteGroup {
 	rg := &RouteGroup{
-		prefix:          prefix,
-		routes:          []routeHandler{},
-		middlewareFuncs: middlewares,
+		prefix:     prefix,
+		routes:     []routeHandler{},
+		middleware: middlewares,
 	}
 
 	return rg
@@ -89,7 +90,7 @@ func (g *RouteGroup) routeHandlers() []routeHandler {
 		augR := routeHandler{
 			Method:  r.Method,
 			Path:    fullPath,
-			Handler: handlerWithMiddleware(r.Handler, g.middlewareFuncs),
+			Handler: handlerWithMiddleware(r.Handler, g.middleware),
 		}
 
 		routes[i] = augR
