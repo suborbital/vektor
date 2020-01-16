@@ -19,7 +19,7 @@ GusT consists of components that can be used to help you build your web apps and
 
 **GusT API**
 
-The `gapi` component will help quickly build API services with Go. It includes secure-by-default settings such as built-in LetsEncrypt, lots of customizability, and helpers galore. It will integrate with GusT's Rust components to allow performing more complex and performance-oriented work.
+The `gapi` component will help quickly build API services with Go. It includes secure-by-default settings such as built-in LetsEncrypt, lots of customizability, and helpers galore. It will integrate with GusT's Rust components to allow performing more complex and performance-oriented work. `gapi` enables minimal-boilerplate servers with an intuitive wrapper around the most performant HTTP router, `httprouter`.
 
 **GusT Functions**
 
