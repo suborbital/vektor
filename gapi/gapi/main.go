@@ -16,12 +16,15 @@ func main() {
 	server.GET("/nf", HandleNotFound)
 
 	group := g.Group("/api")
-	group.GET("/me", HandleMe)
+
+	group3 := g.Group("/v1", denyMiddleware)
+	group3.GET("/*name", HandleMe)
+	group.AddGroup(group3)
 
 	group2 := g.Group("/v2")
 	group2.GET("/you", HandleYou)
-
 	group.AddGroup(group2)
+
 	server.AddGroup(group)
 
 	server.Start()
