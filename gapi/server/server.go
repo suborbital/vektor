@@ -2,11 +2,8 @@ package server
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
-	"github.com/suborbital/gust/glog"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -15,7 +12,7 @@ type Server struct {
 	// Server embeds Handler, which embeds httprouter.Router,
 	// so Server inherits all of httprouter.Router's convenience funcs,
 	// but Handler controls the ServeHTTP function
-	*Handler
+	*Router
 	server  *http.Server
 	options Options
 }
@@ -30,18 +27,12 @@ func New(opts ...OptionsModifier) *Server {
 		options = mod(options)
 	}
 
-	handler := &Handler{
-		Router:      httprouter.New(),
-		middlewares: nil,
-		getLogger: func() glog.Logger {
-			return options.Logger
-		},
-	}
+	router := routerWithOptions(options)
 
-	server := createGoServer(options, handler)
+	server := createGoServer(options, router)
 
 	s := &Server{
-		Handler: handler,
+		Router:  router,
 		server:  server,
 		options: options,
 	}
@@ -51,6 +42,9 @@ func New(opts ...OptionsModifier) *Server {
 
 // Start starts the server listening
 func (s *Server) Start() error {
+	// mount the root set of routes before starting
+	s.mountGroup(s.Router.rootGroup())
+
 	if s.options.AppName != "" {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
 	}
@@ -60,14 +54,6 @@ func (s *Server) Start() error {
 	}
 
 	return s.server.ListenAndServeTLS("", "")
-}
-
-// AddGroup adds a group of handlers
-func (s *Server) AddGroup(group *RouteGroup) {
-	for _, r := range group.routeHandlers() {
-		fullPath := fmt.Sprintf("%s%s", ensureLeadingSlash(group.routePrefix()), ensureLeadingSlash(r.Path))
-		s.Handle(r.Method, fullPath, r.Handler)
-	}
 }
 
 func createGoServer(options Options, handler http.Handler) *http.Server {

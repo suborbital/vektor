@@ -11,15 +11,15 @@ func main() {
 		g.UseInsecureHTTPWithEnvPort("PORT"),
 	)
 
-	server.GET("/f", server.With(HandleFound))
-	server.POST("/f", server.With(HandleFound))
-	server.GET("/nf", server.With(HandleNotFound))
+	server.GET("/f", HandleFound)
+	server.POST("/f", HandleFound)
+	server.GET("/nf", HandleNotFound)
 
 	group := g.Group("/api")
-	group.GET("/me", server.With(HandleMe))
+	group.GET("/me", HandleMe)
 
 	group2 := g.Group("/v2")
-	group2.GET("/you", server.With(HandleYou))
+	group2.GET("/you", HandleYou)
 
 	group.AddGroup(group2)
 	server.AddGroup(group)
