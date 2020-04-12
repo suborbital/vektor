@@ -1,7 +1,6 @@
 
-test/gapi/server:
-	GO111MODULE=on go build -o .bin/gapi ./gapi/gapi
-	.bin/gapi
+build/gapi/test:
+	GO111MODULE=on go build ./gapi/test
 
-build/gapi/server:
-	GO111MODULE=on go build -o .bin/gapi ./gapi/gapi
+run/gapi/test: build/gapi/test
+	./test

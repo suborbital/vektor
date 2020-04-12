@@ -21,4 +21,4 @@ jobs:
         go get -v -t -d ./...
 
     - name: Build
-      run: make build/gapi/server
+      run: make build/gapi/test
