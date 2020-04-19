@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/suborbital/gust/vlog"
+	"github.com/suborbital/vektor/vlog"
 )
 
 // OptionsModifier takes an options struct and returns a modified Options struct

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/suborbital/gust/vlog"
+	"github.com/suborbital/vektor/vlog"
 )
 
 // HandlerFunc is the vk version of http.HandlerFunc

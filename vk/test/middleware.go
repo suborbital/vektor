@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	g "github.com/suborbital/gust/vk"
+	g "github.com/suborbital/vektor/vk"
 )
 
 func denyMiddleware(r *http.Request, ctx *g.Ctx) error {

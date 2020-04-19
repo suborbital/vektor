@@ -7,14 +7,14 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-// Server represents a gust API server
+// Server represents a vektor API server
 type Server struct {
 	*Router
 	server  *http.Server
 	options Options
 }
 
-// New creates a new gust API server
+// New creates a new vektor API server
 func New(opts ...OptionsModifier) *Server {
 	options := defaultOptions()
 

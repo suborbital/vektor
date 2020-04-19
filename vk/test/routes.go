@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	g "github.com/suborbital/gust/vk"
+	g "github.com/suborbital/vektor/vk"
 )
 
 // HandleFound returns 200

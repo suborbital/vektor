@@ -32,7 +32,7 @@ type VLoggerOptions struct {
 	prefix   string
 }
 
-// VLogger is the "builtin" implementation of a GusT Logger
+// VLogger is the "builtin" implementation of a vektor Logger
 type VLogger struct {
 	opts *VLoggerOptions
 }

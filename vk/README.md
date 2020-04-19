@@ -1,6 +1,6 @@
-# gust API
+# vektor API
 
-`vk` is the gust component that allows for easy development of API servers in Go.
+`vk` is the vektor component that allows for easy development of API servers in Go.
 
 Features:
 

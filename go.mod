@@ -1,4 +1,4 @@
-module github.com/suborbital/gust
+module github.com/suborbital/vektor
 
 go 1.13
 

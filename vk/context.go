@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/suborbital/gust/vlog"
+	"github.com/suborbital/vektor/vlog"
 )
 
 // Ctx serves a similar purpose to context.Context, but has some typed fields

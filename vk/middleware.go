@@ -3,7 +3,7 @@ package vk
 import (
 	"net/http"
 
-	"github.com/suborbital/gust/vlog"
+	"github.com/suborbital/vektor/vlog"
 )
 
 // Middleware represents a handler that runs on a request before reaching its handler

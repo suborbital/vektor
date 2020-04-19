@@ -1,6 +1,6 @@
 package vk
 
-import "github.com/suborbital/gust/vlog"
+import "github.com/suborbital/vektor/vlog"
 
 // Options are the available options for Server
 type Options struct {
@@ -13,7 +13,7 @@ type Options struct {
 
 func defaultOptions() Options {
 	defaultOptions := Options{
-		AppName:  "gust api",
+		AppName:  "vektor api",
 		Domain:   "",
 		UseHTTP:  false,
 		HTTPPort: "",

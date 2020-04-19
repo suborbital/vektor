@@ -1,7 +1,7 @@
 package main
 
 import (
-	g "github.com/suborbital/gust/vk"
+	g "github.com/suborbital/vektor/vk"
 )
 
 func main() {
