@@ -1,4 +1,4 @@
-# Vektor
+![logo_transparent_small](https://user-images.githubusercontent.com/5942370/79701451-37f2ec00-826b-11ea-8e37-b6f89111a5d7.png)
 
 ## Intro
 `Vektor` enables development of modern web services. Vektor is a Go webserver framework designed to simplify the development of web APIs by eliminating boilerplate, using secure defaults, providing plug-in points, and offering common pieces needed for web apps. Vektor is fairly opinionated, but aims to provide flexibility in the right places.
@@ -23,4 +23,3 @@ The `vk` component is central to Vektor. It helps to quickly build production-re
 **Vektor Authentication**
 
 The `vauth` component will provide an authentication library for service-service authentication (such as between `vk` services) as well as client-server authentication that can be extended to fit any need.
-
