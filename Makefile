@@ -1,6 +1,6 @@
 
-build/gapi/test:
-	GO111MODULE=on go build ./gapi/test
+build/vk/test:
+	GO111MODULE=on go build ./vk/test
 
-run/gapi/test: build/gapi/test
+run/vk/test: build/vk/test
 	./test
