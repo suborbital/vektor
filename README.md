@@ -1,4 +1,4 @@
-![logo_transparent_small](https://user-images.githubusercontent.com/5942370/79701451-37f2ec00-826b-11ea-8e37-b6f89111a5d7.png)
+![logo_transparent_wide](https://user-images.githubusercontent.com/5942370/79701505-ac2d8f80-826b-11ea-8681-4346765a1802.png)
 
 ## Intro
 `Vektor` enables development of modern web services. Vektor is a Go webserver framework designed to simplify the development of web APIs by eliminating boilerplate, using secure defaults, providing plug-in points, and offering common pieces needed for web apps. Vektor is fairly opinionated, but aims to provide flexibility in the right places.
