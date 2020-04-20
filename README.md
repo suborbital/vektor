@@ -23,3 +23,5 @@ The `vk` component is central to Vektor. It helps to quickly build production-re
 **Vektor Authentication**
 
 The `vauth` component will provide an authentication library for service-service authentication (such as between `vk` services) as well as client-server authentication that can be extended to fit any need.
+
+Copyright SubOrbital contributors 2020
