@@ -1,31 +1,35 @@
 package main
 
 import (
-	g "github.com/suborbital/vektor/vk"
+	"log"
+
+	"github.com/suborbital/vektor/vk"
 )
 
 func main() {
-	server := g.New(
-		g.UseAppName("vk tester"),
-		g.UseDomain("scim.docker.cohix.ca"),
-		g.UseInsecureHTTPWithEnvPort("PORT"),
+	server := vk.New(
+		vk.UseAppName("vk tester"),
+		vk.UseDomain("scim.docker.cohix.ca"),
+		vk.UseInsecureHTTPWithEnvPort("PORT"),
 	)
 
 	server.GET("/f", HandleFound)
 	server.POST("/f", HandleFound)
 	server.GET("/nf", HandleNotFound)
 
-	group := g.Group("/api")
+	v1 := vk.Group("/v1", vk.ContentTypeMiddleware("application/json"), denyMiddleware)
+	v1.GET("/me", HandleMe)
 
-	group3 := g.Group("/v1", denyMiddleware)
-	group3.GET("/*name", HandleMe)
-	group.AddGroup(group3)
+	v2 := vk.Group("/v2")
+	v2.GET("/you", HandleYou)
 
-	group2 := g.Group("/v2")
-	group2.GET("/you", HandleYou)
-	group.AddGroup(group2)
+	api := vk.Group("/api")
+	api.AddGroup(v1)
+	api.AddGroup(v2)
 
-	server.AddGroup(group)
+	server.AddGroup(api)
 
-	server.Start()
+	if err := server.Start(); err != nil {
+		log.Fatal(err)
+	}
 }

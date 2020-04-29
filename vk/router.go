@@ -122,7 +122,7 @@ func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
 		var status int
 		var body []byte
 
-		ctx := NewCtx(rt.getLogger(), params)
+		ctx := NewCtx(rt.getLogger(), params, w.Header())
 
 		resp, err := inner(r, ctx)
 		if err != nil {

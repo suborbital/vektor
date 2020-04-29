@@ -73,7 +73,7 @@ func (g *RouteGroup) Handle(method, path string, handler HandlerFunc) {
 
 // AddGroup adds a group of routes to this group as a subgroup.
 // the subgroup's prefix is added to all of the routes it contains,
-// with the resulting path being "/subgroup.prefix/group.prefix/route/path/here"
+// with the resulting path being "/group.prefix/subgroup.prefix/route/path/here"
 func (g *RouteGroup) AddGroup(group *RouteGroup) {
 	g.routes = append(g.routes, group.routeHandlers()...)
 }

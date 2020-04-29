@@ -9,6 +9,15 @@ import (
 // Middleware represents a handler that runs on a request before reaching its handler
 type Middleware func(*http.Request, *Ctx) error
 
+// ContentTypeMiddleware allows the content-type to be set for a handler or group
+func ContentTypeMiddleware(contentType string) Middleware {
+	return func(r *http.Request, ctx *Ctx) error {
+		ctx.Headers.Add("Content-Type", contentType)
+
+		return nil
+	}
+}
+
 func handlerWithMiddleware(inner HandlerFunc, middleware []Middleware) HandlerFunc {
 	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
 		for _, m := range middleware {

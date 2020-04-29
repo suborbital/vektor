@@ -20,7 +20,7 @@ func HandleNotFound(r *http.Request, ctx *g.Ctx) (interface{}, error) {
 
 // HandleMe handles Me requests
 func HandleMe(r *http.Request, ctx *g.Ctx) (interface{}, error) {
-	return g.R(200, "it's a me, Mario"), nil
+	return g.R(200, struct{ Me string }{Me: "mario"}), nil
 }
 
 // HandleYou handles You requests
