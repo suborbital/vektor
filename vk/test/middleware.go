@@ -4,15 +4,21 @@ import (
 	"net/http"
 	"strings"
 
-	g "github.com/suborbital/vektor/vk"
+	"github.com/suborbital/vektor/vk"
 )
 
-func denyMiddleware(r *http.Request, ctx *g.Ctx) error {
+func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
 	if strings.Contains(r.URL.Path, "hack") {
 		ctx.Log.ErrorString("HACKER!!")
 
-		return g.E(403, "begone, hacker")
+		return vk.E(403, "begone, hacker")
 	}
+
+	return nil
+}
+
+func headerMiddleware(r *http.Request, ctx *vk.Ctx) error {
+	ctx.Headers.Set("X-Vektor-Test", "foobar")
 
 	return nil
 }
