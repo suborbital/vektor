@@ -16,7 +16,7 @@ func HandlePing(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return "pong", nil
 }
 ```
-But Vektor is capable of scaling up to serve powerful production workloads, using its full framework of API-oriented features.
+Those are the basics, but Vektor is capable of scaling up to serve powerful production workloads, using its full framework of API-oriented features.
 
 ## The server object
 
@@ -49,9 +49,9 @@ Here's a breakdown of each part:
 
 `r *http.Request`: The request object for the request being handled.
 
-`ctx *vk.Ctx`: A context object containing more options for interacting with the request. Ctx includes a standard Go `context.Context` which can be augmented with any value, a `vlog.Logger` object for logging within request handlers, and an `httprouter.Params` object to access URL parameters (such as `/users/:uuid`).
+`ctx *vk.Ctx`: A context object containing more options for interacting with the request. Ctx includes a standard Go `context.Context` which can be augmented with any value, a `vlog.Logger` object for logging within request handlers, an `httprouter.Params` object to access URL parameters (such as `/users/:uuid`), and an `http.Headers` object, which can be used to set response headers if needed.
 
-`(interface{}, error)`: The return types of the handler allow you to respond to HTTP requests by simply returning values. If an error is returned, `vk` will interpret it as a failed request and respond with an error code, if error is `nil`, then the first value is used to respond based on the response handling rules (see below).
+`(interface{}, error)`: The return types of the handler allow you to respond to HTTP requests by simply returning values. If an error is returned, `vk` will interpret it as a failed request and respond with an error code, if error is `nil`, then the `interface{}` value is used to respond based on the response handling rules (see below).
 
 ## Response types
 
@@ -87,7 +87,7 @@ func HandleDelete(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 
 `vk` processes the `(interface{}, error)` returned by handler functions in a spcific way to ensure you always know how it will behave while still being able to use simple types in your code.
 
-**The rules for successful responses (i.e. the `interface{}` returned by handler functions) are as follows:**
+### Successful responses (i.e. the `interface{}` returned by handler functions):
 
 1. If the type is `vk.Response`, set the HTTP response code provided and process `Response.body` as follows. (If the type is NOT `vk.Response`, the status code is set to `200 OK`)
 1. If the type is string, write the string (as UTF-8 bytes) to the response body.
@@ -104,7 +104,7 @@ Handler returns... | Status Code | Response body
 `return vk.R(http.StatusCreated, "created"), nil` | 201 Created | "created" (as UTF-8 bytes)
 `return vk.R(http.StatusCreated, someStructInstance), nil` | 201 Created | [JSON respresentation of struct automatically marshalled by `vk`]
 
-**The rules for failure responses (i.e. the `error` returned by handler functions) are as follows:**
+### Failure responses (i.e. the `error` returned by handler functions):
 
 1. If the type is `vk.Error`, set the HTTP response code provided and respond with JSON as follows: `{"status": $code, "message": $message}
 2. If the type is NOT `vk.Error`, set the HTTP status code to 500 and write `err.Error()` as UTF-8 bytes to the response body
