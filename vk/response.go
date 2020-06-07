@@ -13,8 +13,8 @@ type Response struct {
 	body   interface{}
 }
 
-// Reply returns a filled-in response
-func Reply(status int, body interface{}) Response {
+// Respond returns a filled-in response
+func Respond(status int, body interface{}) Response {
 	r := Response{
 		status: status,
 		body:   body,
@@ -23,9 +23,9 @@ func Reply(status int, body interface{}) Response {
 	return r
 }
 
-// R is `Reply` for those who prefer terse code
+// R is `Respond` for those who prefer terse code
 func R(status int, body interface{}) Response {
-	return Reply(status, body)
+	return Respond(status, body)
 }
 
 // TODO: add convenience helpers for status codes

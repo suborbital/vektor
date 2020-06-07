@@ -13,7 +13,7 @@ type Options struct {
 
 func defaultOptions() Options {
 	defaultOptions := Options{
-		AppName:  "vektor api",
+		AppName:  "",
 		Domain:   "",
 		UseHTTP:  false,
 		HTTPPort: "",
