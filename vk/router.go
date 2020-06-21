@@ -86,6 +86,11 @@ func (rt *Router) DELETE(path string, handler HandlerFunc) {
 	rt.root.DELETE(path, handler)
 }
 
+// Handle adds a route to be handled
+func (rt *Router) Handle(method, path string, handler HandlerFunc) {
+	rt.root.Handle(method, path, handler)
+}
+
 // AddGroup adds a group to the router's root group,
 // which is mounted to the server upon Start()
 func (rt *Router) AddGroup(group *RouteGroup) {

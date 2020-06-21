@@ -18,6 +18,15 @@ func ContentTypeMiddleware(contentType string) Middleware {
 	}
 }
 
+func loggerMiddleware(logger vlog.Logger) Middleware {
+	return func(r *http.Request, ctx *Ctx) error {
+		logger.Info(r.Method, r.URL.String())
+
+		return nil
+	}
+}
+
+// generate a HandlerFunc that passes the request through a set of Middleware first
 func handlerWithMiddleware(inner HandlerFunc, middleware []Middleware) HandlerFunc {
 	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
 		for _, m := range middleware {
@@ -27,13 +36,5 @@ func handlerWithMiddleware(inner HandlerFunc, middleware []Middleware) HandlerFu
 		}
 
 		return inner(r, ctx)
-	}
-}
-
-func loggerMiddleware(logger vlog.Logger) Middleware {
-	return func(r *http.Request, ctx *Ctx) error {
-		logger.Info(r.Method, r.URL.String())
-
-		return nil
 	}
 }

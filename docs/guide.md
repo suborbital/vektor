@@ -1,6 +1,6 @@
 # The Vektor Guide 🗺
 
-Vektor's goal is to help you develop web services faster. Vektor handles much of the boilerplate needed to start building a Go server, so you can serve a request in just 10 lines of code:
+Vektor's goal is to help you develop web services faster. Vektor handles much of the boilerplate needed to start building a Go server, so you can serve a request in less than 10 lines of code:
 ```golang
 import "github.com/suborbital/vektor/vk"
 
@@ -17,6 +17,8 @@ func HandlePing(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 }
 ```
 Those are the basics, but Vektor is capable of scaling up to serve powerful production workloads, using its full framework of API-oriented features.
+
+# Set up `vk`
 
 ## The server object
 
@@ -51,7 +53,85 @@ Here's a breakdown of each part:
 
 `ctx *vk.Ctx`: A context object containing more options for interacting with the request. Ctx includes a standard Go `context.Context` which can be augmented with any value, a `vlog.Logger` object for logging within request handlers, an `httprouter.Params` object to access URL parameters (such as `/users/:uuid`), and an `http.Headers` object, which can be used to set response headers if needed.
 
-`(interface{}, error)`: The return types of the handler allow you to respond to HTTP requests by simply returning values. If an error is returned, `vk` will interpret it as a failed request and respond with an error code, if error is `nil`, then the `interface{}` value is used to respond based on the response handling rules (see below).
+`(interface{}, error)`: The return types of the handler allow you to respond to HTTP requests by simply returning values. If an error is returned, `vk` will interpret it as a failed request and respond with an error code, if error is `nil`, then the `interface{}` value is used to respond based on the response handling rules. **Responding to requests is handled in depth below in [Responding to requests](#responding-to-requests)**
+
+
+## Mounting routes
+
+To define routes for your `vk` server, use the HTTP method functions on the server object:
+```golang
+server := vk.New(
+	vk.UseAppName("Vektor API Server"),
+	vk.UseDomain("vektor.example.com"),
+)
+
+server.GET("/users", HandleGetUsers)
+server.POST("/groups", HandleCreateGroup)
+```
+If you prefer to pass the HTTP method as an argument, use `server.Handle()` instead.
+
+
+## Route groups
+
+`vk` allows grouping routes by a common path prefix. For example, if you want a group of routes to begin with the `/api/` path, you can create an API route group and then mount all of your handlers to that group.
+```golang
+apiGroup := vk.Group("/api")
+apiGroup.GET("/events", HandleGetEvents)
+
+server.AddGroup(apiGroup)
+```
+Calling `AddGroup` will calculate the full paths for all routes and mount them to the server. In the example above, the handler would be mounted at `/api/events`.
+
+Groups can even be added to groups!
+```golang
+v1 := vk.Group("/v1")
+v1.GET("/events", HandleEventsV1)
+
+v2 := vk.Group("/v2")
+v2.GET("/events", HandleEventsV2)
+
+apiGroup := vk.Group("/api")
+apiGroup.AddGroup(v1)
+apiGroup.AddGroup(v2)
+
+server.AddGroup(api)
+```
+This will create a natural grouping of your routes, with the above example creating the `/api/v1/events` and `/api/v2/events` routes.
+
+
+## Middleware
+
+Groups become even more powerful when combined with Middleware. Middleware are pseudo request handlers that run in sequence before the mounted `vk.HandlerFunc` is run. Middleware functions can modify a request and its context, or they can return an error, which causes the request handling to be terminated immediately. Two examples:
+```golang
+func headerMiddleware(r *http.Request, ctx *vk.Ctx) error {
+	ctx.Headers.Set("X-Vektor-Test", "foobar")
+
+	return nil
+}
+
+func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
+	if strings.Contains(r.URL.Path, "hack") {
+		ctx.Log.ErrorString("HACKER!!")
+
+		return vk.E(403, "begone, hacker")
+	}
+
+	return nil
+}
+```
+As you can see, middleware have a similar function signature to `vk.HandlerFunc`, but only return an error. The first example modifies the request context to add a response header. The second example detects a hacker and returns an error, which is handled exactly like any other error response (see below). Returning an error from a Middleware prevents the request from ever reaching the registered handler.
+
+Middleware are applied to route groups:
+```golang
+v1 := vk.Group("/v1", vk.ContentTypeMiddleware("application/json"), denyMiddleware, headerMiddleware)
+v1.GET("/events", HandleEventsV1)
+```
+This example shows a group created with three middleware. The first adds the `Content-Type` response header (and is included with `vk`), the second and third are the examples from above. When the group is mounted to the server, the chain of middleware are put in place, and are run before the registered handler. When groups are nested, the middleware from the parent group are run before the middleware of any child groups. In the example of nested groups above, any middleware set on the `apiGroup` groups would run before any middleware set on the `v1` or `v2` groups.
+
+Middleware in `vk` is designed to be easily composable, creating chains of behaviour easily grouped to sets of routes. Middleware can also help increase security of applications, allowing authentication, request throttling, active defence, etc, to run before the registered handler and keeping sensitive code from even being reached in the case of an unauthorized request.
+
+
+# Responding to requests
 
 ## Response types
 
@@ -114,4 +194,8 @@ Examples:
 Handler returns... | Status Code | Response body
 --- | --- | ---
 `return nil, errors.New("failed to add user")` | 500 Internal Server Error | "failed to add user" (as UTF-8 bytes)
-`retuen nil, vk.E(http.StatusForbidden, "not permitted to do this thing")` | 403 Forbidden | `{status: 403, message: "not permitted to do this thing"}`
+`retuen nil, vk.E(http.StatusForbidden, "not permitted to do this thing")` | 403 Forbidden | `{"status": 403, "message": "not permitted to do this thing"}`
+
+## What's to come?
+
+`Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) to achieve Suborbital's goal of creating a framework for scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
