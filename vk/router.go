@@ -147,12 +147,12 @@ func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
 		headerCType := w.Header().Get(contentTypeHeaderKey)
 		shouldSetCType := headerCType == ""
 
-		rt.getLogger().Info("post-handler contenttype:", string(headerCType))
+		rt.getLogger().Debug("post-handler contenttype:", string(headerCType))
 
 		// if no contentType was set in the middleware chain,
 		// then set it here based on the type detected
 		if shouldSetCType {
-			rt.getLogger().Info("setting auto-detected contenttype:", string(detectedCType))
+			rt.getLogger().Debug("setting auto-detected contenttype:", string(detectedCType))
 			w.Header().Set(contentTypeHeaderKey, string(detectedCType))
 		}
 
