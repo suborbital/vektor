@@ -17,7 +17,7 @@ func main() {
 	server.POST("/f", HandleFound)
 	server.GET("/nf", HandleNotFound)
 
-	v1 := vk.Group("/v1", vk.ContentTypeMiddleware("application/json"), denyMiddleware, headerMiddleware)
+	v1 := vk.Group("/v1", denyMiddleware, headerMiddleware)
 	v1.GET("/me", HandleMe)
 
 	v2 := vk.Group("/v2")

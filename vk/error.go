@@ -33,20 +33,20 @@ func E(status int, message string) Error {
 // converts _something_ into bytes, best it can:
 // if data is Error type, returns (status, {status: status, message: message})
 // if other error, returns (500, []byte(err.Error()))
-func errorOrOtherToBytes(err error) (int, []byte) {
+func errorOrOtherToBytes(err error) (int, []byte, contentType) {
 	statusCode := 500
 	realData := []byte(err.Error())
 
-	// first, check if it's response type, and unpack it for further processing
+	// first, check if it's Error type, and unpack it for further processing
 	if e, ok := err.(Error); ok {
 		statusCode = e.Status
 		errJSON, marshalErr := json.Marshal(e)
 		if marshalErr != nil {
-			return statusCode, realData
+			return statusCode, realData, contentTypeTextPlain
 		}
 
-		return statusCode, errJSON
+		return statusCode, errJSON, contentTypeJSON
 	}
 
-	return statusCode, realData
+	return statusCode, realData, contentTypeTextPlain
 }

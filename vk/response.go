@@ -30,15 +30,21 @@ func R(status int, body interface{}) Response {
 
 // TODO: add convenience helpers for status codes
 
+const (
+	contentTypeJSON        contentType = "application/json"
+	contentTypeTextPlain   contentType = "text/plain"
+	contentTypeOctetStream contentType = "application/octet-stream"
+)
+
 // converts _something_ into bytes, best it can:
 // if data is Response type, returns (status, body processed as below)
 // if bytes, return (200, bytes)
 // if string, return (200, []byte(string))
 // if struct, return (200, json(struct))
 // otherwise, return (500, nil)
-func responseOrOtherToBytes(data interface{}) (int, []byte) {
+func responseOrOtherToBytes(data interface{}) (int, []byte, contentType) {
 	if data == nil {
-		return http.StatusNoContent, []byte{}
+		return http.StatusNoContent, []byte{}, contentTypeOctetStream
 	}
 
 	statusCode := http.StatusOK
@@ -52,17 +58,17 @@ func responseOrOtherToBytes(data interface{}) (int, []byte) {
 
 	// if data is []byte or string, return it as-is
 	if b, ok := realData.([]byte); ok {
-		return statusCode, b
+		return statusCode, b, contentTypeOctetStream
 	} else if s, ok := realData.(string); ok {
-		return statusCode, []byte(s)
+		return statusCode, []byte(s), contentTypeTextPlain
 	}
 
 	// otherwise, assume it's a struct of some kind,
 	// so JSON marshal it and return it
 	json, err := json.Marshal(realData)
 	if err != nil {
-		return 500, []byte(errors.Wrap(err, "failed to json Marshal response struct").Error()) // TODO: make this error reporting better
+		return 500, []byte(errors.Wrap(err, "failed to json Marshal response struct").Error()), contentTypeTextPlain // TODO: make this error reporting better
 	}
 
-	return statusCode, json
+	return statusCode, json, contentTypeJSON
 }
