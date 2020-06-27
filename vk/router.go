@@ -8,6 +8,11 @@ import (
 	"github.com/suborbital/vektor/vlog"
 )
 
+const contentTypeHeaderKey = "Content-Type"
+
+// used internally to convey content types
+type contentType string
+
 // HandlerFunc is the vk version of http.HandlerFunc
 // instead of exposing the ResponseWriter, the function instead returns
 // an object and an error, which are handled as described in `With` below
@@ -126,14 +131,29 @@ func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		var status int
 		var body []byte
+		var detectedCType contentType
 
 		ctx := NewCtx(rt.getLogger(), params, w.Header())
 
 		resp, err := inner(r, ctx)
 		if err != nil {
-			status, body = errorOrOtherToBytes(err)
+			status, body, detectedCType = errorOrOtherToBytes(err)
 		} else {
-			status, body = responseOrOtherToBytes(resp)
+			status, body, detectedCType = responseOrOtherToBytes(resp)
+		}
+
+		// check if anything in the handler chain set the content type
+		// header, and only use the auto-detected value if it wasn't
+		headerCType := w.Header().Get(contentTypeHeaderKey)
+		shouldSetCType := headerCType == ""
+
+		rt.getLogger().Debug("post-handler contenttype:", string(headerCType))
+
+		// if no contentType was set in the middleware chain,
+		// then set it here based on the type detected
+		if shouldSetCType {
+			rt.getLogger().Debug("setting auto-detected contenttype:", string(detectedCType))
+			w.Header().Set(contentTypeHeaderKey, string(detectedCType))
 		}
 
 		w.WriteHeader(status)
