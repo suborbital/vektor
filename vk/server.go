@@ -46,9 +46,9 @@ func (s *Server) Start() error {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
 	}
 
-	if s.options.Domain == "" {
+	if useHTTP, _ := s.options.ShouldUseHTTP(); !useHTTP && s.options.Domain == "" {
 		s.options.Logger.ErrorString("DOMAIN and USE_HTTP_PORT are both unset, server will start up but will fail to acquire a certificate, reconfigure and restart")
-	} else {
+	} else if s.options.Domain != "" {
 		s.options.Logger.Info("using domain", s.options.Domain)
 	}
 
