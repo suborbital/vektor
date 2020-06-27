@@ -46,9 +46,15 @@ func (s *Server) Start() error {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
 	}
 
+	if s.options.Domain == "" {
+		s.options.Logger.ErrorString("DOMAIN and USE_HTTP_PORT are both unset, server will start up but will fail to acquire a certificate, reconfigure and restart")
+	} else {
+		s.options.Logger.Info("using domain", s.options.Domain)
+	}
+
 	s.options.Logger.Info("serving on", s.server.Addr)
 
-	if s.options.UseHTTP {
+	if useHTTP, _ := s.options.ShouldUseHTTP(); useHTTP {
 		return s.server.ListenAndServe()
 	}
 
@@ -56,8 +62,8 @@ func (s *Server) Start() error {
 }
 
 func createGoServer(options Options, handler http.Handler) *http.Server {
-	if options.UseHTTP {
-		return goHTTPServerWithPort(options.HTTPPort, handler)
+	if useHTTP, portString := options.ShouldUseHTTP(); useHTTP {
+		return goHTTPServerWithPort(portString, handler)
 	}
 
 	return goTLSServerWithDomain(options.Domain, handler)

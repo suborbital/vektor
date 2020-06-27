@@ -9,8 +9,6 @@ import (
 func main() {
 	server := vk.New(
 		vk.UseAppName("vk tester"),
-		vk.UseDomain("scim.docker.cohix.ca"),
-		vk.UseInsecureHTTPWithEnvPort("PORT"),
 	)
 
 	server.GET("/f", HandleFound)
