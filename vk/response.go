@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/suborbital/vektor/vlog"
 )
 
 // Response represents a non-error HTTP response
@@ -42,9 +43,9 @@ const (
 // if string, return (200, []byte(string))
 // if struct, return (200, json(struct))
 // otherwise, return (500, nil)
-func responseOrOtherToBytes(data interface{}) (int, []byte, contentType) {
+func responseOrOtherToBytes(l vlog.Logger, data interface{}) (int, []byte, contentType) {
 	if data == nil {
-		return http.StatusNoContent, []byte{}, contentTypeOctetStream
+		return http.StatusNoContent, []byte{}, contentTypeTextPlain
 	}
 
 	statusCode := http.StatusOK
@@ -67,7 +68,9 @@ func responseOrOtherToBytes(data interface{}) (int, []byte, contentType) {
 	// so JSON marshal it and return it
 	json, err := json.Marshal(realData)
 	if err != nil {
-		return 500, []byte(errors.Wrap(err, "failed to json Marshal response struct").Error()), contentTypeTextPlain // TODO: make this error reporting better
+		l.Error(errors.Wrap(err, "failed to Marshal response struct"))
+
+		return genericErrorResponseCode, []byte(genericErrorResponseBytes), contentTypeTextPlain
 	}
 
 	return statusCode, json, contentTypeJSON

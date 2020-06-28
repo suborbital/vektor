@@ -17,9 +17,11 @@ func main() {
 
 	v1 := vk.Group("/v1", denyMiddleware, headerMiddleware)
 	v1.GET("/me", HandleMe)
+	v1.GET("/me/hack", HandleMe)
 
 	v2 := vk.Group("/v2")
 	v2.GET("/you", HandleYou)
+	v2.GET("/mistake", HandleBadMistake)
 
 	api := vk.Group("/api")
 	api.AddGroup(v1)
