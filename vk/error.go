@@ -77,7 +77,7 @@ func errorOrOtherToBytes(l vlog.Logger, err error) (int, []byte, contentType) {
 		errJSON, marshalErr := json.Marshal(errResp)
 		if marshalErr != nil {
 			// any failure results in the generic response body being used
-			l.ErrorString("failed to marshal vk.Error:", marshalErr.Error(), "original error message:", err.Error())
+			l.ErrorString("failed to marshal vk.Error:", marshalErr.Error(), "original error:", err.Error())
 
 			return statusCode, genericErrorResponseBytes, contentTypeTextPlain
 		}
@@ -85,7 +85,7 @@ func errorOrOtherToBytes(l vlog.Logger, err error) (int, []byte, contentType) {
 		return statusCode, errJSON, contentTypeJSON
 	}
 
-	l.Warn("redacting potential unsafe error response, original error string:", err.Error())
+	l.Warn("redacting potential unsafe error response, original error:", err.Error())
 
 	return statusCode, genericErrorResponseBytes, contentTypeTextPlain
 }

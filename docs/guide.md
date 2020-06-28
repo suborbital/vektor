@@ -172,7 +172,7 @@ func HandleDelete(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 
 `vk.Response` is an (optional) type that can be used to control the behaviour of the response, if desired. `vk.Respond(...)` returns a `vk.Response`.
 
-1. If the type is `vk.Response`, set the HTTP response code provided and process `Response.body` as follows. (If the type is NOT `vk.Response`, the status code is set to `200 OK`)
+1. If the type is `vk.Response`, set the HTTP status code provided and process `Response.body` as follows. (If the type is NOT `vk.Response`, the status code is set to `200 OK`)
 1. If the type is string, write the string (as UTF-8 bytes) to the response body.
 1. If the type is bytes, write them directly to the response body.
 1. If the type is a struct, attempt to marshal to JSON and write JSON bytes to the response body.
