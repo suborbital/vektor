@@ -136,7 +136,7 @@ Middleware in `vk` is designed to be easily composable, creating chains of behav
 
 ## Response types
 
-`vk` includes two types, `Response` and `Error` (with helper functions `vk.Respond` and `vk.Error`) that can be used to gain extra control over the response code and contents that you want to return:
+`vk` includes two types, `Response` and `Error` (with helper functions `vk.Respond(...)` and `vk.Err(...)`) that can be used to gain extra control over the response code and contents that you want to return:
 
 ```golang
 type createdResponse struct {
@@ -159,10 +159,10 @@ func HandleCreate(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 func HandleDelete(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	// Oops, something went wrong
 
-	return nil, vk.Error(http.StatusConflict, "the user is already deleted") // responds with HTTP status 409 and body {"status": 409, "message": "the user is already deleted"}
+	return nil, vk.Err(http.StatusConflict, "the user is already deleted") // responds with HTTP status 409 and body {"status": 409, "message": "the user is already deleted"}
 }
 ```
-`vk.Respond` and `vk.Error` can be used with their shortcuts `vk.R` and `vk.E` if you like your code to be terse.
+`vk.Respond` and `vk.Err` can be used with their shortcuts `vk.R` and `vk.E` if you like your code to be terse.
 
 ## Response handling rules
 
@@ -170,7 +170,9 @@ func HandleDelete(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 
 ### Successful responses (i.e. the `interface{}` returned by handler functions):
 
-1. If the type is `vk.Response`, set the HTTP response code provided and process `Response.body` as follows. (If the type is NOT `vk.Response`, the status code is set to `200 OK`)
+`vk.Response` is an (optional) type that can be used to control the behaviour of the response, if desired. `vk.Respond(...)` returns a `vk.Response`.
+
+1. If the type is `vk.Response`, set the HTTP status code provided and process `Response.body` as follows. (If the type is NOT `vk.Response`, the status code is set to `200 OK`)
 1. If the type is string, write the string (as UTF-8 bytes) to the response body.
 1. If the type is bytes, write them directly to the response body.
 1. If the type is a struct, attempt to marshal to JSON and write JSON bytes to the response body.
@@ -187,17 +189,32 @@ Handler returns... | Status Code | Response body | Content-Type
 `return vk.R(http.StatusCreated, "created"), nil` | 201 Created | "created" (as UTF-8 bytes) | `text/plain`
 `return vk.R(http.StatusCreated, someStructInstance), nil` | 201 Created | [JSON respresentation of struct automatically marshalled by `vk`] | `application/json`
 
-### Failure responses (i.e. the `error` returned by handler functions):
+### Failure responses (i.e. the `error` returned by middleware or handler functions):
 
-1. If the type is `vk.Error`, set the HTTP response code provided and respond with JSON as follows: `{"status": $code, "message": $message}
-2. If the type is NOT `vk.Error`, set the HTTP status code to 500 and write `err.Error()` as UTF-8 bytes to the response body
+`vk.Error` is an interface that can be used to control the behaviour of error responses. `vk.ErrorResponse` is a concrete type that implements `vk.Error`. Any errors that do NOT implement `vk.Error` will be treated as potentially unsafe, and their contents will be logged but not returned to the caller. Use `vk.Wrap(...)` if you'd like to wrap an `error` in `vk.ErrorResponse`. `vk.Err` returns a `vk.Error`.
+
+`vk.Error` looks like this:
+```golang
+type Error interface {
+	Error() string // this ensures all Errors will also conform to the normal error interface
+
+	Message() string
+	Status() int
+}
+```
+
+Errors returned from middleware or `HandlerFunc`s are handled as follows:
+
+1. If the type is `vk.Error`, set the HTTP status code provided and respond with JSON as follows: `{"status": err.Status(), "message": err.Message()}`
+2. If the type is NOT `vk.Error`, log the potentially unsafe error contents, set the HTTP status code to 500, and respond with "Internal Server Error"
 
 Examples:
 
 Handler returns... | Status Code | Response body | Content-Type
 --- | --- | --- | ---
-`return nil, errors.New("failed to add user")` | 500 Internal Server Error | "failed to add user" (as UTF-8 bytes) | `text/plain`
-`retuen nil, vk.E(http.StatusForbidden, "not permitted to do this thing")` | 403 Forbidden | `{"status": 403, "message": "not permitted to do this thing"}` | `application/json`
+`return nil, errors.New("failed to add user")` | 500 Internal Server Error | "Internal Server Error" (as UTF-8 bytes) | `text/plain`
+`return nil, vk.E(http.StatusForbidden, "not permitted to do this thing")` | 403 Forbidden | `{"status": 403, "message": "not permitted to do this thing"}` | `application/json`
+`return nil, vk.Wrap(http.StatusApplicationError, err)` | 434 Application Error | `{"status": 434, "message": err.Error()}` | `application/json`
 
 ## What's to come?
 

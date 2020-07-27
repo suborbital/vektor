@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/suborbital/vektor/vk"
@@ -26,4 +27,9 @@ func HandleMe(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 // HandleYou handles You requests
 func HandleYou(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return vk.R(201, "created, I guess"), nil
+}
+
+// HandleBadMistake handles a bad mistake
+func HandleBadMistake(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+	return nil, errors.New("this is a bad idea!!")
 }

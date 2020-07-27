@@ -137,9 +137,9 @@ func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
 
 		resp, err := inner(r, ctx)
 		if err != nil {
-			status, body, detectedCType = errorOrOtherToBytes(err)
+			status, body, detectedCType = errorOrOtherToBytes(rt.getLogger(), err)
 		} else {
-			status, body, detectedCType = responseOrOtherToBytes(resp)
+			status, body, detectedCType = responseOrOtherToBytes(rt.getLogger(), resp)
 		}
 
 		// check if anything in the handler chain set the content type
