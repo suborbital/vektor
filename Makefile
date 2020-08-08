@@ -4,3 +4,6 @@ build/vk/test:
 
 run/vk/test: build/vk/test
 	./test
+
+deps:
+	go get -u -d ./...

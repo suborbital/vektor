@@ -5,8 +5,8 @@ go 1.13
 require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/pkg/errors v0.9.1
-	github.com/sethvargo/go-envconfig v0.1.1
-	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
-	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa // indirect
-	golang.org/x/text v0.3.2 // indirect
+	github.com/sethvargo/go-envconfig v0.3.0
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
+	golang.org/x/text v0.3.3 // indirect
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sethvargo/go-envconfig/pkg/envconfig"
+	"github.com/sethvargo/go-envconfig"
 	"github.com/suborbital/vektor/vlog"
 )
 
