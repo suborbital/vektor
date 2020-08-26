@@ -216,6 +216,9 @@ Handler returns... | Status Code | Response body | Content-Type
 `return nil, vk.E(http.StatusForbidden, "not permitted to do this thing")` | 403 Forbidden | `{"status": 403, "message": "not permitted to do this thing"}` | `application/json`
 `return nil, vk.Wrap(http.StatusApplicationError, err)` | 434 Application Error | `{"status": 434, "message": err.Error()}` | `application/json`
 
+## Standard http.HandlerFunc
+`vk` can use standard `http.HandlerFunc` handlers by mounting them with `server.HandleHTTP`. This is useful for mounting handler functions provided by third party libraries (such as Prometheus), but they are not able to take advantage of many `vk` features such as middleware or route groups currently.
+
 ## What's to come?
 
 `Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) to achieve Suborbital's goal of creating a framework for scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.

@@ -96,6 +96,13 @@ func (rt *Router) Handle(method, path string, handler HandlerFunc) {
 	rt.root.Handle(method, path, handler)
 }
 
+// HandleHTTP allows vk to handle a standard http.HandlerFunc
+func (rt *Router) HandleHTTP(method, path string, handler http.HandlerFunc) {
+	rt.hrouter.Handle(method, path, func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		handler(w, r)
+	})
+}
+
 // AddGroup adds a group to the router's root group,
 // which is mounted to the server upon Start()
 func (rt *Router) AddGroup(group *RouteGroup) {

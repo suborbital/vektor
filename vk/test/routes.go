@@ -33,3 +33,8 @@ func HandleYou(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 func HandleBadMistake(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return nil, errors.New("this is a bad idea!!")
 }
+
+// HandleHTTP tests HTTP handlers
+func HandleHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNoContent)
+}

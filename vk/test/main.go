@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/suborbital/vektor/vk"
 )
@@ -28,6 +29,8 @@ func main() {
 	api.AddGroup(v2)
 
 	server.AddGroup(api)
+
+	server.HandleHTTP(http.MethodGet, "/http", HandleHTTP)
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
