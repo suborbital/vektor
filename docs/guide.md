@@ -217,7 +217,7 @@ Handler returns... | Status Code | Response body | Content-Type
 `return nil, vk.Wrap(http.StatusApplicationError, err)` | 434 Application Error | `{"status": 434, "message": err.Error()}` | `application/json`
 
 ## Standard http.HandlerFunc
-`vk` can mount standard `http.HandlerFunc` handlers by mounting them with `server.HandleHTTP`. This is useful for mounting handler functions provided by third party libraries (such as Prometheus), but they are not able to take advantage of many `vk` features such as middleware or route groups currently.
+`vk` can use standard `http.HandlerFunc` handlers by mounting them with `server.HandleHTTP`. This is useful for mounting handler functions provided by third party libraries (such as Prometheus), but they are not able to take advantage of many `vk` features such as middleware or route groups currently.
 
 ## What's to come?
 
