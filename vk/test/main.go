@@ -5,11 +5,22 @@ import (
 	"net/http"
 
 	"github.com/suborbital/vektor/vk"
+	"github.com/suborbital/vektor/vlog"
 )
 
+type testMeta struct {
+	Version string `json:"version"`
+}
+
 func main() {
+	logger := vlog.Default(
+		vlog.Meta(testMeta{Version: "v0.1.1"}),
+		vlog.ToFile("/Users/cohix-pro/.op/logfile.log"),
+	)
+
 	server := vk.New(
 		vk.UseAppName("vk tester"),
+		vk.UseLogger(logger),
 	)
 
 	server.GET("/f", HandleFound)

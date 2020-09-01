@@ -14,7 +14,7 @@ type Options struct {
 	AppName  string `env:"APP_NAME"`
 	Domain   string `env:"DOMAIN"`
 	HTTPPort int    `env:"USE_HTTP_PORT"`
-	Logger   vlog.Logger
+	Logger   *vlog.Logger
 }
 
 // ShouldUseHTTP returns true and a port string if the option is enabled
@@ -32,7 +32,7 @@ func defaultOptions() Options {
 		log.Fatal(err)
 	}
 
-	o.Logger = vlog.DefaultLogger()
+	o.Logger = vlog.Default()
 
 	return o
 }

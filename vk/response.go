@@ -43,7 +43,7 @@ const (
 // if string, return (200, []byte(string))
 // if struct, return (200, json(struct))
 // otherwise, return (500, nil)
-func responseOrOtherToBytes(l vlog.Logger, data interface{}) (int, []byte, contentType) {
+func responseOrOtherToBytes(l *vlog.Logger, data interface{}) (int, []byte, contentType) {
 	if data == nil {
 		return http.StatusNoContent, []byte{}, contentTypeTextPlain
 	}

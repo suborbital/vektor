@@ -65,7 +65,7 @@ var (
 // converts _something_ into bytes, best it can:
 // if data is Error type, returns (status, {status: status, message: message})
 // if other error, returns (500, []byte(err.Error()))
-func errorOrOtherToBytes(l vlog.Logger, err error) (int, []byte, contentType) {
+func errorOrOtherToBytes(l *vlog.Logger, err error) (int, []byte, contentType) {
 	statusCode := genericErrorResponseCode
 
 	// first, check if it's vk.Error interface type, and unpack it for further processing
