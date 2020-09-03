@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -21,8 +22,10 @@ type Producer interface {
 // producer and managing scoped loggers
 type Logger struct {
 	producer Producer
+	scope    interface{}
 	opts     Options
 	output   io.Writer
+	lock     *sync.Mutex
 }
 
 // Default returns a Logger using the default producer
@@ -38,13 +41,15 @@ func New(producer Producer, opts ...OptionsModifier) *Logger {
 
 	v := &Logger{
 		producer: producer,
+		scope:    nil,
 		opts:     options,
+		lock:     &sync.Mutex{},
 	}
 
 	output, err := outputForOptions(options)
 	if err != nil {
 		v.output = os.Stdout
-		os.Stderr.Write([]byte("failed to set vlog output: " + err.Error() + "\n"))
+		os.Stderr.Write([]byte("[vlog] failed to set output: " + err.Error() + "\n"))
 	} else {
 		v.output = output
 	}
@@ -52,51 +57,64 @@ func New(producer Producer, opts ...OptionsModifier) *Logger {
 	return v
 }
 
+// CreateScoped creates a duplicate logger which has a particular scope
+func (v *Logger) CreateScoped(scope interface{}) *Logger {
+	sl := &Logger{
+		producer: v.producer,
+		scope:    scope,
+		opts:     v.opts,
+		output:   v.output,
+		lock:     v.lock,
+	}
+
+	return sl
+}
+
 // ErrorString logs a string as an error
 func (v *Logger) ErrorString(msgs ...string) {
 	msg := v.producer.ErrorString(msgs...)
 
-	v.log(msg, nil, 1)
+	v.log(msg, v.scope, 1)
 }
 
 // Error logs an error as an error
 func (v *Logger) Error(err error) {
 	msg := v.producer.Error(err)
 
-	v.log(msg, nil, 1)
+	v.log(msg, v.scope, 1)
 }
 
 // Warn logs a string as an warning
 func (v *Logger) Warn(msgs ...string) {
 	msg := v.producer.Warn(msgs...)
 
-	v.log(msg, nil, 2)
+	v.log(msg, v.scope, 2)
 }
 
 // Info logs a string as an info message
 func (v *Logger) Info(msgs ...string) {
 	msg := v.producer.Info(msgs...)
 
-	v.log(msg, nil, 3)
+	v.log(msg, v.scope, 3)
 }
 
 // Debug logs a string as debug output
 func (v *Logger) Debug(msgs ...string) {
 	msg := v.producer.Debug(msgs...)
 
-	v.log(msg, nil, 4)
+	v.log(msg, v.scope, 4)
 }
 
 // Trace logs a function name and returns a function to be deferred, logging the completion of a function
 func (v *Logger) Trace(fnName string) func() {
 	msg, traceFunc := v.producer.Trace(fnName)
 
-	v.log(msg, nil, 5)
+	v.log(msg, v.scope, 5)
 
 	return func() {
 		msg := traceFunc()
 
-		v.log(msg, nil, 5)
+		v.log(msg, v.scope, 5)
 	}
 }
 
@@ -107,6 +125,10 @@ func (v *Logger) log(message string, scope interface{}, level int) {
 
 	// send the raw message to the console
 	if v.output != os.Stdout {
+		// acquire a lock as the output may be a file
+		v.lock.Lock()
+		defer v.lock.Unlock()
+
 		// throwing away the error here since there's nothing much we can do
 		os.Stdout.Write([]byte(message))
 		os.Stdout.Write([]byte("\n"))
@@ -127,7 +149,7 @@ func (v *Logger) log(message string, scope interface{}, level int) {
 
 	_, err = v.output.Write(structuredJSON)
 	if err != nil {
-		os.Stderr.Write([]byte("failed to write to configured output: " + err.Error() + "\n"))
+		os.Stderr.Write([]byte("[vlog] failed to write to configured output: " + err.Error() + "\n"))
 	} else {
 		v.output.Write([]byte("\n"))
 	}

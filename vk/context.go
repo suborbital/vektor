@@ -14,6 +14,7 @@ type Ctx struct {
 	Log     *vlog.Logger
 	Params  httprouter.Params
 	Headers http.Header
+	scope   interface{}
 }
 
 // NewCtx creates a new Ctx
@@ -26,4 +27,17 @@ func NewCtx(log *vlog.Logger, params httprouter.Params, headers http.Header) *Ct
 	}
 
 	return ctx
+}
+
+// UseScope sets an object to be the scope of the request, including setting the logger's scope
+// the scope can be retrieved later with the Scope() method
+func (c *Ctx) UseScope(scope interface{}) {
+	c.Log = c.Log.CreateScoped(scope)
+
+	c.scope = scope
+}
+
+// Scope retrieves the context's scope
+func (c *Ctx) Scope() interface{} {
+	return c.scope
 }

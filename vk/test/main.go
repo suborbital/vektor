@@ -31,7 +31,7 @@ func main() {
 	v1.GET("/me", HandleMe)
 	v1.GET("/me/hack", HandleMe)
 
-	v2 := vk.Group("/v2")
+	v2 := vk.Group("/v2", setScopeMiddleware)
 	v2.GET("/you", HandleYou)
 	v2.GET("/mistake", HandleBadMistake)
 
