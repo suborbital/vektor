@@ -1,139 +1,174 @@
 package vlog
 
 import (
-	"fmt"
-	"strings"
+	"encoding/json"
+	"io"
+	"os"
+	"sync"
+	"time"
 )
 
-// Logger represents an object that is considered a logger
-type Logger interface {
-	ErrorString(...string) // Logs an error string
-	Error(error)           // Logs an error obj
-	Warn(...string)        // Logs a warning
-	Info(...string)        // Logs information
-	Debug(...string)       // Logs debug information
-	Trace(string) func()   // Logs a function call and returns a function to be deferred, indicating the end of the function
-	// Sensitive(string)      // Logs sensitive information, should be used wisely
+// Producer represents an object that is considered a producer of messages
+type Producer interface {
+	ErrorString(...string) string         // Logs an error string
+	Error(error) string                   // Logs an error obj
+	Warn(...string) string                // Logs a warning
+	Info(...string) string                // Logs information
+	Debug(...string) string               // Logs debug information
+	Trace(string) (string, func() string) // Logs a function call and returns a function to be deferred, indicating the end of the function
 }
 
-// LogLevelTrace and others represent log levels
-const (
-	LogLevelTrace = "trace" // 5
-	LogLevelDebug = "debug" // 4
-	LogLevelInfo  = "info"  // 3
-	LogLevelWarn  = "warn"  // 2
-	LogLevelError = "error" // 1
-)
-
-// VLoggerOptions represents the options for a VLogger
-type VLoggerOptions struct {
-	level    int
-	filepath string
-	prefix   string
+// Logger is the main logger object, responsible for taking input from the
+// producer and managing scoped loggers
+type Logger struct {
+	producer Producer
+	scope    interface{}
+	opts     Options
+	output   io.Writer
+	lock     *sync.Mutex
 }
 
-// VLogger is the "builtin" implementation of a vektor Logger
-type VLogger struct {
-	opts *VLoggerOptions
+// Default returns a Logger using the default producer
+func Default(opts ...OptionsModifier) *Logger {
+	prod := &defaultProducer{}
+
+	return New(prod, opts...)
 }
 
-// DefaultLogger returns a VLogger that prints to the console
-func DefaultLogger() *VLogger {
-	return LoggerWithOptions(defaultOptions())
-}
+// New returns a Logger with the provided producer and options
+func New(producer Producer, opts ...OptionsModifier) *Logger {
+	options := newOptions(opts...)
 
-// LoggerWithOptions returns a logger based on the provided options
-func LoggerWithOptions(opts *VLoggerOptions) *VLogger {
-	l := &VLogger{
-		opts: opts,
+	v := &Logger{
+		producer: producer,
+		scope:    nil,
+		opts:     options,
+		lock:     &sync.Mutex{},
 	}
 
-	return l
-}
-
-// ErrorString prints a string as an error
-func (gl *VLogger) ErrorString(msgs ...string) {
-	gl.log(fmt.Sprintf("(E) %s", strings.Join(msgs, " ")))
-}
-
-// Error prints a string as an error
-func (gl *VLogger) Error(err error) {
-	gl.log(fmt.Sprintf("(E) %s", err.Error()))
-}
-
-// Warn prints a string as an warning
-func (gl *VLogger) Warn(msgs ...string) {
-	if gl.opts.level >= 2 {
-		gl.log(fmt.Sprintf("(W) %s", strings.Join(msgs, " ")))
-	}
-}
-
-// Info prints a string as an info message
-func (gl *VLogger) Info(msgs ...string) {
-	if gl.opts.level >= 3 {
-		gl.log(fmt.Sprintf("(I) %s", strings.Join(msgs, " ")))
-	}
-}
-
-// Debug prints a string as debug output
-func (gl *VLogger) Debug(msgs ...string) {
-	if gl.opts.level >= 4 {
-		gl.log(fmt.Sprintf("(D) %s", strings.Join(msgs, " ")))
-	}
-}
-
-// Trace prints a function name and returns a function to be deferred, logging the completion of a function
-func (gl *VLogger) Trace(fnName string) func() {
-	if gl.opts.level >= 5 {
-		gl.log(fmt.Sprintf("(T) %s", fnName))
-
-		return func() {
-			gl.log(fmt.Sprintf("(T) %s completed", fnName))
-		}
-	}
-
-	return func() {}
-}
-
-func (gl *VLogger) log(msg string) {
-	if gl.isFileLogger() {
-		// TODO: add file logging
-	}
-
-	if gl.opts.prefix != "" {
-		fmt.Printf("%s %s\n", gl.opts.prefix, msg)
+	output, err := outputForOptions(options)
+	if err != nil {
+		v.output = os.Stdout
+		os.Stderr.Write([]byte("[vlog] failed to set output: " + err.Error() + "\n"))
 	} else {
-		fmt.Printf("%s\n", msg)
+		v.output = output
+	}
+
+	return v
+}
+
+// CreateScoped creates a duplicate logger which has a particular scope
+func (v *Logger) CreateScoped(scope interface{}) *Logger {
+	sl := &Logger{
+		producer: v.producer,
+		scope:    scope,
+		opts:     v.opts,
+		output:   v.output,
+		lock:     v.lock,
+	}
+
+	return sl
+}
+
+// ErrorString logs a string as an error
+func (v *Logger) ErrorString(msgs ...string) {
+	msg := v.producer.ErrorString(msgs...)
+
+	v.log(msg, v.scope, 1)
+}
+
+// Error logs an error as an error
+func (v *Logger) Error(err error) {
+	msg := v.producer.Error(err)
+
+	v.log(msg, v.scope, 1)
+}
+
+// Warn logs a string as an warning
+func (v *Logger) Warn(msgs ...string) {
+	msg := v.producer.Warn(msgs...)
+
+	v.log(msg, v.scope, 2)
+}
+
+// Info logs a string as an info message
+func (v *Logger) Info(msgs ...string) {
+	msg := v.producer.Info(msgs...)
+
+	v.log(msg, v.scope, 3)
+}
+
+// Debug logs a string as debug output
+func (v *Logger) Debug(msgs ...string) {
+	msg := v.producer.Debug(msgs...)
+
+	v.log(msg, v.scope, 4)
+}
+
+// Trace logs a function name and returns a function to be deferred, logging the completion of a function
+func (v *Logger) Trace(fnName string) func() {
+	msg, traceFunc := v.producer.Trace(fnName)
+
+	v.log(msg, v.scope, 5)
+
+	return func() {
+		msg := traceFunc()
+
+		v.log(msg, v.scope, 5)
 	}
 }
 
-func (gl *VLogger) isFileLogger() bool {
-	return gl.opts.filepath != ""
-}
-
-func defaultOptions() *VLoggerOptions {
-	o := &VLoggerOptions{
-		level:    logLevelValFromString(LogLevelInfo),
-		filepath: "",
-		prefix:   "",
+func (v *Logger) log(message string, scope interface{}, level int) {
+	if level > v.opts.level {
+		return
 	}
 
-	return o
-}
+	// send the raw message to the console
+	if v.output != os.Stdout {
+		// acquire a lock as the output may be a file
+		v.lock.Lock()
+		defer v.lock.Unlock()
 
-func logLevelValFromString(level string) int {
-	switch level {
-	case LogLevelTrace:
-		return 5
-	case LogLevelDebug:
-		return 4
-	case LogLevelInfo:
-		return 3
-	case LogLevelWarn:
-		return 2
-	case LogLevelError:
-		return 1
+		// throwing away the error here since there's nothing much we can do
+		os.Stdout.Write([]byte(message))
+		os.Stdout.Write([]byte("\n"))
 	}
 
-	return 3
+	structured := structuredLog{
+		LogMessage: message,
+		Timestamp:  time.Now(),
+		Level:      level,
+		AppMeta:    v.opts.appMeta,
+		ScopeMeta:  scope,
+	}
+
+	structuredJSON, err := json.Marshal(structured)
+	if err != nil {
+		os.Stderr.Write([]byte("[vlog] failed to marshal structured log"))
+	}
+
+	_, err = v.output.Write(structuredJSON)
+	if err != nil {
+		os.Stderr.Write([]byte("[vlog] failed to write to configured output: " + err.Error() + "\n"))
+	} else {
+		v.output.Write([]byte("\n"))
+	}
+
+}
+
+func outputForOptions(opts Options) (io.Writer, error) {
+	var output io.Writer
+
+	if opts.filepath != "" {
+		file, err := os.OpenFile(opts.filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+
+		output = file
+	} else {
+		output = os.Stdout
+	}
+
+	return output, nil
 }

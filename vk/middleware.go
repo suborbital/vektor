@@ -46,7 +46,7 @@ func enableCors(ctx *Ctx, domain string) {
 	}
 }
 
-func loggerMiddleware(logger vlog.Logger) Middleware {
+func loggerMiddleware(logger *vlog.Logger) Middleware {
 	return func(r *http.Request, ctx *Ctx) error {
 		logger.Info(r.Method, r.URL.String())
 

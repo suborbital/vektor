@@ -22,7 +22,7 @@ type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
 type Router struct {
 	hrouter   *httprouter.Router
 	root      *RouteGroup
-	getLogger func() vlog.Logger
+	getLogger func() *vlog.Logger
 }
 
 // routerWithOptions returns a router with the specified options and optional middleware on the root routes
@@ -33,7 +33,7 @@ func routerWithOptions(options Options, middleware ...Middleware) *Router {
 	r := &Router{
 		hrouter: httprouter.New(),
 		root:    Group("", middleware...),
-		getLogger: func() vlog.Logger {
+		getLogger: func() *vlog.Logger {
 			return options.Logger
 		},
 	}

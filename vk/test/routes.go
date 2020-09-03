@@ -26,6 +26,8 @@ func HandleMe(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 
 // HandleYou handles You requests
 func HandleYou(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+	ctx.Log.Info("calling you!")
+
 	return vk.R(201, "created, I guess"), nil
 }
 

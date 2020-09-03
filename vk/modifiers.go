@@ -26,7 +26,7 @@ func UseInsecureHTTP(port int) OptionsModifier {
 }
 
 // UseLogger allows a custom logger to be used
-func UseLogger(logger vlog.Logger) OptionsModifier {
+func UseLogger(logger *vlog.Logger) OptionsModifier {
 	return func(o Options) Options {
 		o.Logger = logger
 
