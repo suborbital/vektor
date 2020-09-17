@@ -100,9 +100,9 @@ server.AddGroup(api)
 This will create a natural grouping of your routes, with the above example creating the `/api/v1/events` and `/api/v2/events` routes.
 
 
-## Middleware
+## Middleware and Afterware
 
-Groups become even more powerful when combined with Middleware. Middleware are pseudo request handlers that run in sequence before the mounted `vk.HandlerFunc` is run. Middleware functions can modify a request and its context, or they can return an error, which causes the request handling to be terminated immediately. Two examples:
+Groups become even more powerful when combined with Middleware and Afterware. Middleware are pseudo request handlers that run in sequence before the mounted `vk.HandlerFunc` is run. Middleware functions can modify a request and its context, or they can return an error, which causes the request handling to be terminated immediately. Two examples:
 ```golang
 func headerMiddleware(r *http.Request, ctx *vk.Ctx) error {
 	ctx.Headers.Set("X-Vektor-Test", "foobar")
@@ -122,14 +122,25 @@ func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
 ```
 As you can see, middleware have a similar function signature to `vk.HandlerFunc`, but only return an error. The first example modifies the request context to add a response header. The second example detects a hacker and returns an error, which is handled exactly like any other error response (see below). Returning an error from a Middleware prevents the request from ever reaching the registered handler.
 
-Middleware are applied to route groups:
+Middleware are applied to route groups with the `Before` method:
 ```golang
-v1 := vk.Group("/v1", vk.ContentTypeMiddleware("application/json"), denyMiddleware, headerMiddleware)
+v1 := vk.Group("/v1").Before(vk.ContentTypeMiddleware("application/json"), denyMiddleware, headerMiddleware)
 v1.GET("/events", HandleEventsV1)
 ```
 This example shows a group created with three middleware. The first adds the `Content-Type` response header (and is included with `vk`), the second and third are the examples from above. When the group is mounted to the server, the chain of middleware are put in place, and are run before the registered handler. When groups are nested, the middleware from the parent group are run before the middleware of any child groups. In the example of nested groups above, any middleware set on the `apiGroup` groups would run before any middleware set on the `v1` or `v2` groups.
 
-Middleware in `vk` is designed to be easily composable, creating chains of behaviour easily grouped to sets of routes. Middleware can also help increase security of applications, allowing authentication, request throttling, active defence, etc, to run before the registered handler and keeping sensitive code from even being reached in the case of an unauthorized request.
+Afterware is similar, but is run _after_ the request handler. Who knew! Afterware cannot modify response body or status code, but can modify response headers using the `ctx` object. Here's an example:
+
+```golang
+func logAfter(r *http.Request, ctx *vk.Ctx) {
+	ctx.Log.Info("request completed")
+}
+
+v2 := vk.Group("/v2").Before(vk.ContentTypeMiddleware("application/json")).After(logAfter)
+v2.GET("/events", HandleEventsV2)
+```
+
+Middleware and Afterware in `vk` is designed to be easily composable, creating chains of behaviour easily grouped to sets of routes. Middleware can also help increase security of applications, allowing authentication, request throttling, active defence, etc, to run before the registered handler and keeping sensitive code from even being reached in the case of an unauthorized request.
 
 
 # Responding to requests
