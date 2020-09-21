@@ -9,6 +9,9 @@ import (
 // Middleware represents a handler that runs on a request before reaching its handler
 type Middleware func(*http.Request, *Ctx) error
 
+// Afterware represents a handler that runs on a request after the handler has dealt with the request
+type Afterware func(*http.Request, *Ctx)
+
 // ContentTypeMiddleware allows the content-type to be set
 func ContentTypeMiddleware(contentType string) Middleware {
 	return func(r *http.Request, ctx *Ctx) error {
@@ -54,15 +57,23 @@ func loggerMiddleware(logger *vlog.Logger) Middleware {
 	}
 }
 
-// generate a HandlerFunc that passes the request through a set of Middleware first
-func handlerWithMiddleware(inner HandlerFunc, middleware []Middleware) HandlerFunc {
+// generate a HandlerFunc that passes the request through a set of Middleware first and Afterware after
+func augmentHandler(inner HandlerFunc, middleware []Middleware, afterware []Afterware) HandlerFunc {
 	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
+		// run the middleware (which can error to stop progression)
 		for _, m := range middleware {
 			if err := m(r, ctx); err != nil {
 				return nil, err
 			}
 		}
 
-		return inner(r, ctx)
+		resp, err := inner(r, ctx)
+
+		// run the afterware (which cannot affect the response)
+		for _, a := range afterware {
+			a(r, ctx)
+		}
+
+		return resp, err
 	}
 }

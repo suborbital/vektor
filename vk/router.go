@@ -32,7 +32,7 @@ func routerWithOptions(options Options, middleware ...Middleware) *Router {
 
 	r := &Router{
 		hrouter: httprouter.New(),
-		root:    Group("", middleware...),
+		root:    Group("").Before(middleware...),
 		getLogger: func() *vlog.Logger {
 			return options.Logger
 		},
