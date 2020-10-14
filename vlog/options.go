@@ -40,7 +40,6 @@ func Level(level string) OptionsModifier {
 }
 
 // ToFile sets the logger to open the file specified and write logs to it
-// be a good citizen and call Close() on the logger before the program ends
 func ToFile(filepath string) OptionsModifier {
 	return func(opt Options) Options {
 		opt.filepath = filepath
@@ -58,8 +57,8 @@ func Prefix(prefix string) OptionsModifier {
 	}
 }
 
-// Meta sets the meta object to be included with structured logs
-func Meta(meta interface{}) OptionsModifier {
+// AppMeta sets the AppMeta object to be included with structured logs
+func AppMeta(meta interface{}) OptionsModifier {
 	return func(opt Options) Options {
 		opt.appMeta = meta
 
