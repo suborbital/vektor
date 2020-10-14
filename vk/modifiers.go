@@ -42,3 +42,12 @@ func UseAppName(name string) OptionsModifier {
 		return o
 	}
 }
+
+// UseEnvPrefix uses the provided env prefix (default VK) when looking up other options such as `VK_HTTP_PORT`
+func UseEnvPrefix(prefix string) OptionsModifier {
+	return func(o Options) Options {
+		o.EnvPrefix = prefix
+
+		return o
+	}
+}

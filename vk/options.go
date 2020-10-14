@@ -11,10 +11,11 @@ import (
 
 // Options are the available options for Server
 type Options struct {
-	AppName  string `env:"APP_NAME"`
-	Domain   string `env:"DOMAIN"`
-	HTTPPort int    `env:"USE_HTTP_PORT"`
-	Logger   *vlog.Logger
+	AppName   string `env:"_APP_NAME"`
+	Domain    string `env:"_DOMAIN"`
+	HTTPPort  int    `env:"_HTTP_PORT"`
+	EnvPrefix string `env:"-"`
+	Logger    *vlog.Logger
 }
 
 // ShouldUseHTTP returns true and a port string if the option is enabled
@@ -26,9 +27,9 @@ func (o Options) ShouldUseHTTP() (bool, string) {
 	return false, ""
 }
 
-func defaultOptions() Options {
+func defaultOptions(prefix string) Options {
 	var o Options
-	if err := envconfig.Process(context.Background(), &o); err != nil {
+	if err := envconfig.ProcessWith(context.Background(), &o, envconfig.PrefixLookuper(prefix, envconfig.OsLookuper())); err != nil {
 		log.Fatal(err)
 	}
 

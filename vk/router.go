@@ -25,7 +25,7 @@ type Router struct {
 	getLogger func() *vlog.Logger
 }
 
-// routerWithOptions returns a router with the specified options and optional middleware on the root routes
+// routerWithOptions returns a router with the specified options and optional middleware on the root route group
 func routerWithOptions(options Options, middleware ...Middleware) *Router {
 	// add the logger middleware first
 	middleware = append([]Middleware{loggerMiddleware(options.Logger)}, middleware...)
@@ -140,13 +140,16 @@ func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
 		var body []byte
 		var detectedCType contentType
 
+		// create a context with the configured logger
+		// (and use the ctx.Log for all remaining logging
+		// in case a scope was set on it)
 		ctx := NewCtx(rt.getLogger(), params, w.Header())
 
 		resp, err := inner(r, ctx)
 		if err != nil {
-			status, body, detectedCType = errorOrOtherToBytes(rt.getLogger(), err)
+			status, body, detectedCType = errorOrOtherToBytes(ctx.Log, err)
 		} else {
-			status, body, detectedCType = responseOrOtherToBytes(rt.getLogger(), resp)
+			status, body, detectedCType = responseOrOtherToBytes(ctx.Log, resp)
 		}
 
 		// check if anything in the handler chain set the content type
@@ -154,18 +157,18 @@ func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
 		headerCType := w.Header().Get(contentTypeHeaderKey)
 		shouldSetCType := headerCType == ""
 
-		rt.getLogger().Debug("post-handler contenttype:", string(headerCType))
+		ctx.Log.Debug("post-handler contenttype:", string(headerCType))
 
 		// if no contentType was set in the middleware chain,
 		// then set it here based on the type detected
 		if shouldSetCType {
-			rt.getLogger().Debug("setting auto-detected contenttype:", string(detectedCType))
+			ctx.Log.Debug("setting auto-detected contenttype:", string(detectedCType))
 			w.Header().Set(contentTypeHeaderKey, string(detectedCType))
 		}
 
 		w.WriteHeader(status)
 		w.Write(body)
 
-		rt.getLogger().Debug("handled", r.Method, r.URL.String(), fmt.Sprintf("(%d)", status))
+		ctx.Log.Info(r.Method, r.URL.String(), fmt.Sprintf("completed (%d: %s)", status, http.StatusText(status)))
 	}
 }
