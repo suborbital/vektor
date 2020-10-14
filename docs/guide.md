@@ -16,7 +16,7 @@ func HandlePing(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return "pong", nil
 }
 ```
-Those are the basics, but Vektor is capable of scaling up to serve powerful production workloads, using its full framework of API-oriented features.
+Those are the basics, but Vektor is capable of scaling up to serve powerful production workloads, using its full suite of API-oriented features.
 
 # Set up `vk`
 
@@ -232,4 +232,4 @@ Handler returns... | Status Code | Response body | Content-Type
 
 ## What's to come?
 
-`Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) to achieve Suborbital's goal of creating a framework for scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
+`Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) and [Grav](https://github.com/suborbital/grav) to achieve Suborbital's goal of creating a platform for building scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
