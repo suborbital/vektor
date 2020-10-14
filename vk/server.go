@@ -18,25 +18,19 @@ type Server struct {
 
 // New creates a new vektor API server
 func New(opts ...OptionsModifier) *Server {
-	fakeOpts := Options{}
-	// loop through the provided options on a fake object
-	// to see if an env prefix was set
-	for _, mod := range opts {
-		fakeOpts = mod(fakeOpts)
-	}
-
-	envPrefix := defaultEnvPrefix
-	if fakeOpts.EnvPrefix != "" {
-		envPrefix = fakeOpts.EnvPrefix
-	}
-
-	options := defaultOptions(envPrefix)
-
+	options := Options{}
 	// loop through the provided options and apply the
 	// modifier function to the options object
 	for _, mod := range opts {
 		options = mod(options)
 	}
+
+	envPrefix := defaultEnvPrefix
+	if options.EnvPrefix != "" {
+		envPrefix = options.EnvPrefix
+	}
+
+	options = options.finalize(envPrefix)
 
 	router := routerWithOptions(options)
 

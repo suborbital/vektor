@@ -27,13 +27,15 @@ func (o Options) ShouldUseHTTP() (bool, string) {
 	return false, ""
 }
 
-func defaultOptions(prefix string) Options {
-	var o Options
+// finalize "locks in" the options by overriding any existing options with the version from the environment, and setting the default logger if needed
+func (o Options) finalize(prefix string) Options {
 	if err := envconfig.ProcessWith(context.Background(), &o, envconfig.PrefixLookuper(prefix, envconfig.OsLookuper())); err != nil {
 		log.Fatal(err)
 	}
 
-	o.Logger = vlog.Default()
+	if o.Logger == nil {
+		o.Logger = vlog.Default()
+	}
 
 	return o
 }
