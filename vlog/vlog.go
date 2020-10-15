@@ -10,12 +10,12 @@ import (
 
 // Producer represents an object that is considered a producer of messages
 type Producer interface {
-	ErrorString(...string) string         // Logs an error string
+	ErrorString(...interface{}) string    // Logs an error string
 	Error(error) string                   // Logs an error obj
-	Warn(...string) string                // Logs a warning
-	Info(...string) string                // Logs information
-	Debug(...string) string               // Logs debug information
-	Trace(string) (string, func() string) // Logs a function call and returns a function to be deferred, indicating the end of the function
+	Warn(...interface{}) string           // Logs a warning
+	Info(...interface{}) string           // Logs information
+	Debug(...interface{}) string          // Logs debug information
+	Trace(string) (string, func() string) // Logs a function name and returns a function to be deferred, indicating the end of the function
 }
 
 // Logger is the main logger object, responsible for taking input from the
@@ -71,7 +71,7 @@ func (v *Logger) CreateScoped(scope interface{}) *Logger {
 }
 
 // ErrorString logs a string as an error
-func (v *Logger) ErrorString(msgs ...string) {
+func (v *Logger) ErrorString(msgs ...interface{}) {
 	msg := v.producer.ErrorString(msgs...)
 
 	v.log(msg, v.scope, 1)
@@ -85,21 +85,21 @@ func (v *Logger) Error(err error) {
 }
 
 // Warn logs a string as an warning
-func (v *Logger) Warn(msgs ...string) {
+func (v *Logger) Warn(msgs ...interface{}) {
 	msg := v.producer.Warn(msgs...)
 
 	v.log(msg, v.scope, 2)
 }
 
 // Info logs a string as an info message
-func (v *Logger) Info(msgs ...string) {
+func (v *Logger) Info(msgs ...interface{}) {
 	msg := v.producer.Info(msgs...)
 
 	v.log(msg, v.scope, 3)
 }
 
 // Debug logs a string as debug output
-func (v *Logger) Debug(msgs ...string) {
+func (v *Logger) Debug(msgs ...interface{}) {
 	msg := v.producer.Debug(msgs...)
 
 	v.log(msg, v.scope, 4)
@@ -121,6 +121,10 @@ func (v *Logger) Trace(fnName string) func() {
 func (v *Logger) log(message string, scope interface{}, level int) {
 	if level > v.opts.level {
 		return
+	}
+
+	if v.opts.prefix != "" {
+		message = v.opts.prefix + " " + message
 	}
 
 	// send the raw message to the console

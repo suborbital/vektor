@@ -7,6 +7,8 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
+const defaultEnvPrefix = "VK"
+
 // Server represents a vektor API server
 type Server struct {
 	*Router
@@ -16,13 +18,19 @@ type Server struct {
 
 // New creates a new vektor API server
 func New(opts ...OptionsModifier) *Server {
-	options := defaultOptions()
-
+	options := Options{}
 	// loop through the provided options and apply the
 	// modifier function to the options object
 	for _, mod := range opts {
 		options = mod(options)
 	}
+
+	envPrefix := defaultEnvPrefix
+	if options.EnvPrefix != "" {
+		envPrefix = options.EnvPrefix
+	}
+
+	options = options.finalize(envPrefix)
 
 	router := routerWithOptions(options)
 
@@ -47,7 +55,7 @@ func (s *Server) Start() error {
 	}
 
 	if useHTTP, _ := s.options.ShouldUseHTTP(); !useHTTP && s.options.Domain == "" {
-		s.options.Logger.ErrorString("DOMAIN and USE_HTTP_PORT are both unset, server will start up but will fail to acquire a certificate, reconfigure and restart")
+		s.options.Logger.ErrorString("domain and HTTP port options are both unset, server will start up but will fail to acquire a certificate, reconfigure and restart")
 	} else if s.options.Domain != "" {
 		s.options.Logger.Info("using domain", s.options.Domain)
 	}

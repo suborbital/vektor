@@ -16,7 +16,7 @@ func HandlePing(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return "pong", nil
 }
 ```
-Those are the basics, but Vektor is capable of scaling up to serve powerful production workloads, using its full framework of API-oriented features.
+Those are the basics, but Vektor is capable of scaling up to serve powerful production workloads, using its full suite of API-oriented features.
 
 # Set up `vk`
 
@@ -35,12 +35,15 @@ The included `OptionsModifiers` are:
 
 Option | Description | ENV key
 --- | --- | ---
-UseDomain(domain string) | Enable LetsEncrypt support with the provided domain name (will serve on :80 and :443 for challenge server and API server). LetsEncrypt is disabled by default. | `DOMAIN`
-UseInsecureHTTP(port int) | Choose the port on which to serve requests. Default is port 443. | `USE_HTTP_PORT`
-UseLogger(logger vlog.Logger) | Set the logger object to be used, which conforms to the `vlog.Logger` interface. The logger is used internally by `vk` and is available to all handler functions via the `ctx` object. `vlog.DefaultLogger` is used by default. | N/A
-UseAppName(name string) | When the application starts, `name` will be logged. Empty by default. | `APP_NAME`
+UseDomain(domain string) | Enable LetsEncrypt support with the provided domain name (will serve on :80 and :443 for challenge server and API server). LetsEncrypt is disabled by default. | `VK_DOMAIN`
+UseInsecureHTTP(port int) | Choose the port on which to serve requests. Default is port 443. | `VK_HTTP_PORT`
+UseAppName(name string) | When the application starts, `name` will be logged. Empty by default. | `VK_APP_NAME`
+UseEnvPrefix(prefix string) | Use `prefix` instead of `VK` for environment variables, for example `APP_HTTP_PORT` instead of `VK_HTTP_PORT`. | N/A
+UseLogger(logger *vlog.Logger) | Set the logger object to be used. The logger is used internally by `vk` and is available to all handler functions via the `ctx` object. `vlog.Default` is used by default. | N/A
 
-Each of the options can be set using the modifier function, or by setting the associated environment variable. The modifier function will override the env var.
+Each of the options can be set using the modifier function, or by setting the associated environment variable. The environment variable will override the modifier function.
+
+> Note the use of `UseEnvPrefix` if you would prefer to use something other than `VK` for your environment variables!
 
 ## Handler functions
 
@@ -232,4 +235,4 @@ Handler returns... | Status Code | Response body | Content-Type
 
 ## What's to come?
 
-`Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) to achieve Suborbital's goal of creating a framework for scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
+`Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) and [Grav](https://github.com/suborbital/grav) to achieve Suborbital's goal of creating a platform for building scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.

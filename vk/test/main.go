@@ -14,13 +14,14 @@ type testMeta struct {
 
 func main() {
 	logger := vlog.Default(
-		vlog.Meta(testMeta{Version: "v0.1.1"}),
-		vlog.ToFile("/Users/cohix-pro/.op/logfile.log"),
+		vlog.AppMeta(testMeta{Version: "v0.1.1"}),
+		vlog.ToFile("/Users/cohix-16/.op/logfile.log"),
 	)
 
 	server := vk.New(
 		vk.UseAppName("vk tester"),
 		vk.UseLogger(logger),
+		vk.UseEnvPrefix("APP"),
 	)
 
 	server.GET("/f", HandleFound)
