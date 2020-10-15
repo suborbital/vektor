@@ -13,24 +13,12 @@ const defaultEnvPrefix = "VK"
 type Server struct {
 	*Router
 	server  *http.Server
-	options Options
+	options *Options
 }
 
 // New creates a new vektor API server
 func New(opts ...OptionsModifier) *Server {
-	options := Options{}
-	// loop through the provided options and apply the
-	// modifier function to the options object
-	for _, mod := range opts {
-		options = mod(options)
-	}
-
-	envPrefix := defaultEnvPrefix
-	if options.EnvPrefix != "" {
-		envPrefix = options.EnvPrefix
-	}
-
-	options = options.finalize(envPrefix)
+	options := newOptsWithModifiers(opts...)
 
 	router := routerWithOptions(options)
 
@@ -69,7 +57,7 @@ func (s *Server) Start() error {
 	return s.server.ListenAndServeTLS("", "")
 }
 
-func createGoServer(options Options, handler http.Handler) *http.Server {
+func createGoServer(options *Options, handler http.Handler) *http.Server {
 	if useHTTP, portString := options.ShouldUseHTTP(); useHTTP {
 		return goHTTPServerWithPort(portString, handler)
 	}

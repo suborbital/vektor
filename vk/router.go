@@ -26,7 +26,7 @@ type Router struct {
 }
 
 // routerWithOptions returns a router with the specified options and optional middleware on the root route group
-func routerWithOptions(options Options, middleware ...Middleware) *Router {
+func routerWithOptions(options *Options, middleware ...Middleware) *Router {
 	// add the logger middleware first
 	middleware = append([]Middleware{loggerMiddleware(options.Logger)}, middleware...)
 

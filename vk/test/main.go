@@ -22,6 +22,7 @@ func main() {
 		vk.UseAppName("vk tester"),
 		vk.UseLogger(logger),
 		vk.UseEnvPrefix("APP"),
+		vk.UseInsecureHTTP(8080),
 	)
 
 	server.GET("/f", HandleFound)
