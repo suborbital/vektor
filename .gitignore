@@ -12,3 +12,6 @@
 *.out
 
 .bin
+
+# Test binary
+test
