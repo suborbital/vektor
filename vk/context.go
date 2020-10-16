@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/suborbital/vektor/vlog"
 )
@@ -11,10 +12,11 @@ import (
 // Ctx serves a similar purpose to context.Context, but has some typed fields
 type Ctx struct {
 	context.Context
-	Log     *vlog.Logger
-	Params  httprouter.Params
-	Headers http.Header
-	scope   interface{}
+	Log       *vlog.Logger
+	Params    httprouter.Params
+	Headers   http.Header
+	requestID string
+	scope     interface{}
 }
 
 // NewCtx creates a new Ctx
@@ -40,4 +42,13 @@ func (c *Ctx) UseScope(scope interface{}) {
 // Scope retrieves the context's scope
 func (c *Ctx) Scope() interface{} {
 	return c.scope
+}
+
+// RequestID generates a UUID to act as a request ID and caches it on the Ctx object
+func (c *Ctx) RequestID() string {
+	if c.requestID == "" {
+		c.requestID = uuid.New().String()
+	}
+
+	return c.requestID
 }
