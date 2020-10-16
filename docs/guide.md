@@ -55,7 +55,7 @@ Here's a breakdown of each part:
 
 `r *http.Request`: The request object for the request being handled.
 
-`ctx *vk.Ctx`: A context object containing more options for interacting with the request. Ctx includes a standard Go `context.Context` which can be augmented with any value, a `vlog.Logger` object for logging within request handlers, an `httprouter.Params` object to access URL parameters (such as `/users/:uuid`), and an `http.Headers` object, which can be used to set response headers if needed.
+`ctx *vk.Ctx`: A context object containing more options for interacting with the request. See more below.
 
 `(interface{}, error)`: The return types of the handler allow you to respond to HTTP requests by simply returning values. If an error is returned, `vk` will interpret it as a failed request and respond with an error code, if error is `nil`, then the `interface{}` value is used to respond based on the response handling rules. **Responding to requests is handled in depth below in [Responding to requests](#responding-to-requests)**
 
@@ -232,6 +232,17 @@ Handler returns... | Status Code | Response body | Content-Type
 
 ## Standard http.HandlerFunc
 `vk` can use standard `http.HandlerFunc` handlers by mounting them with `server.HandleHTTP`. This is useful for mounting handler functions provided by third party libraries (such as Prometheus), but they are not able to take advantage of many `vk` features such as middleware or route groups currently.
+
+## The Ctx Object
+Each request handler is passed a `vk.Ctx` object, which is a context object for the request. It is similar to the `context.Context` type (and uses one under the hood), but `Ctx` has been augmented for use in web service development.
+
+`Ctx` includes a standard Go `context.Context` which can be used as a pseudo key/value store using `ctx.Set` and `ctx.Get`. This allows passing things into request handlers such as database connections or other persistent objects. Middleware and Afterware can access the `Ctx` to modify it, or access data from it.
+
+The server's configured `vlog.Logger` object is included (`ctx.Log`) for logging within request handlers, and a shortcut for setting the logger's scope for the current request exists with `ctx.UseScope`. You can learn about scope in [the vlog docs](../vlog/README.md).
+
+Accessing the URL params for the request (such as `/users/:uuid`) is done with `ctx.Params`, and `ctx.RespHeaders` can be used to set response headers if needed.
+
+`Ctx` can also be used to easily set a request ID, with `ctx.RequestID`. The Request ID is cached on the object, and so calling it multiple times will return the same value.
 
 ## What's to come?
 
