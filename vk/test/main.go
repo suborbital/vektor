@@ -14,6 +14,7 @@ type testMeta struct {
 
 func main() {
 	logger := vlog.Default(
+		vlog.Level(vlog.LogLevelTrace),
 		vlog.AppMeta(testMeta{Version: "v0.1.1"}),
 		vlog.ToFile("/Users/cohix-16/.op/logfile.log"),
 	)
@@ -37,7 +38,7 @@ func main() {
 	v2.GET("/you", HandleYou)
 	v2.GET("/mistake", HandleBadMistake)
 
-	api := vk.Group("/api")
+	api := vk.Group("/api").After(getSetLogAfterware)
 	api.AddGroup(v1)
 	api.AddGroup(v2)
 

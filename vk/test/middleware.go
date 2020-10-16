@@ -32,7 +32,7 @@ func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
 }
 
 func headerMiddleware(r *http.Request, ctx *vk.Ctx) error {
-	ctx.Headers.Set("X-Vektor-Test", "foobar")
+	ctx.RespHeaders.Set("X-Vektor-Test", "foobar")
 
 	return nil
 }

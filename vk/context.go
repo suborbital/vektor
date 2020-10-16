@@ -9,26 +9,48 @@ import (
 	"github.com/suborbital/vektor/vlog"
 )
 
+// ctxKey is a type to represent a key in the Ctx context.
+type ctxKey string
+
 // Ctx serves a similar purpose to context.Context, but has some typed fields
 type Ctx struct {
-	context.Context
-	Log       *vlog.Logger
-	Params    httprouter.Params
-	Headers   http.Header
-	requestID string
-	scope     interface{}
+	ctx         context.Context
+	Log         *vlog.Logger
+	Params      httprouter.Params
+	RespHeaders http.Header
+	requestID   string
+	scope       interface{}
 }
 
 // NewCtx creates a new Ctx
 func NewCtx(log *vlog.Logger, params httprouter.Params, headers http.Header) *Ctx {
 	ctx := &Ctx{
-		Context: context.Background(),
-		Log:     log,
-		Params:  params,
-		Headers: headers,
+		ctx:         context.Background(),
+		Log:         log,
+		Params:      params,
+		RespHeaders: headers,
 	}
 
 	return ctx
+}
+
+// Context returns the "raw" context.Context
+func (c *Ctx) Context() context.Context {
+	return c.ctx
+}
+
+// Set sets a value on the Ctx's embedded Context (a la key/value store)
+func (c *Ctx) Set(key string, val interface{}) {
+	realKey := ctxKey(key)
+	c.ctx = context.WithValue(c.ctx, realKey, val)
+}
+
+// Get gets a value from the Ctx's embedded Context (a la key/value store)
+func (c *Ctx) Get(key string) interface{} {
+	realKey := ctxKey(key)
+	val := c.ctx.Value(realKey)
+
+	return val
 }
 
 // UseScope sets an object to be the scope of the request, including setting the logger's scope

@@ -15,7 +15,7 @@ type Afterware func(*http.Request, *Ctx)
 // ContentTypeMiddleware allows the content-type to be set
 func ContentTypeMiddleware(contentType string) Middleware {
 	return func(r *http.Request, ctx *Ctx) error {
-		ctx.Headers.Set(contentTypeHeaderKey, contentType)
+		ctx.RespHeaders.Set(contentTypeHeaderKey, contentType)
 
 		return nil
 	}
@@ -43,9 +43,9 @@ func CORSHandler(domain string) HandlerFunc {
 
 func enableCors(ctx *Ctx, domain string) {
 	if domain != "" {
-		ctx.Headers.Set("Access-Control-Allow-Origin", domain)
-		ctx.Headers.Set("X-Requested-With", "XMLHttpRequest")
-		ctx.Headers.Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, cache-control")
+		ctx.RespHeaders.Set("Access-Control-Allow-Origin", domain)
+		ctx.RespHeaders.Set("X-Requested-With", "XMLHttpRequest")
+		ctx.RespHeaders.Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, cache-control")
 	}
 }
 
