@@ -14,7 +14,7 @@ type ctxKey string
 
 // Ctx serves a similar purpose to context.Context, but has some typed fields
 type Ctx struct {
-	ctx         context.Context
+	Context     context.Context
 	Log         *vlog.Logger
 	Params      httprouter.Params
 	RespHeaders http.Header
@@ -25,7 +25,7 @@ type Ctx struct {
 // NewCtx creates a new Ctx
 func NewCtx(log *vlog.Logger, params httprouter.Params, headers http.Header) *Ctx {
 	ctx := &Ctx{
-		ctx:         context.Background(),
+		Context:     context.Background(),
 		Log:         log,
 		Params:      params,
 		RespHeaders: headers,
@@ -34,21 +34,16 @@ func NewCtx(log *vlog.Logger, params httprouter.Params, headers http.Header) *Ct
 	return ctx
 }
 
-// Context returns the "raw" context.Context
-func (c *Ctx) Context() context.Context {
-	return c.ctx
-}
-
 // Set sets a value on the Ctx's embedded Context (a la key/value store)
 func (c *Ctx) Set(key string, val interface{}) {
 	realKey := ctxKey(key)
-	c.ctx = context.WithValue(c.ctx, realKey, val)
+	c.Context = context.WithValue(c.Context, realKey, val)
 }
 
 // Get gets a value from the Ctx's embedded Context (a la key/value store)
 func (c *Ctx) Get(key string) interface{} {
 	realKey := ctxKey(key)
-	val := c.ctx.Value(realKey)
+	val := c.Context.Value(realKey)
 
 	return val
 }
