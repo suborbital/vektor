@@ -61,7 +61,12 @@ func (c *Ctx) Scope() interface{} {
 	return c.scope
 }
 
-// RequestID generates a UUID to act as a request ID and caches it on the Ctx object
+// UseRequestID is a setter for the request ID
+func (c *Ctx) UseRequestID(id string) {
+	c.requestID = id
+}
+
+// RequestID returns the request ID of the current request, generating one if none exists.
 func (c *Ctx) RequestID() string {
 	if c.requestID == "" {
 		c.requestID = uuid.New().String()
