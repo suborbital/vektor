@@ -236,13 +236,13 @@ Handler returns... | Status Code | Response body | Content-Type
 ## The Ctx Object
 Each request handler is passed a `vk.Ctx` object, which is a context object for the request. It is similar to the `context.Context` type (and uses one under the hood), but `Ctx` has been augmented for use in web service development.
 
-`Ctx` includes a standard Go `context.Context` which can be used as a pseudo key/value store using `ctx.Set` and `ctx.Get`. This allows passing things into request handlers such as database connections or other persistent objects. Middleware and Afterware can access the `Ctx` to modify it, or access data from it.
+`Ctx` includes a standard Go `context.Context` which can be used as a pseudo key/value store using `ctx.Set()` and `ctx.Get()`. This allows passing things into request handlers such as database connections or other persistent objects. Middleware and Afterware can access the `Ctx` to modify it, or access data from it.
 
-The server's configured `vlog.Logger` object is included (`ctx.Log`) for logging within request handlers, and a shortcut for setting the logger's scope for the current request exists with `ctx.UseScope`. You can learn about scope in [the vlog docs](../vlog/README.md).
+The server's configured `vlog.Logger` object is included (`ctx.Log`) for logging within request handlers, and a shortcut for setting the logger's scope for the current request exists with `ctx.UseScope(...)`. You can learn about scope in [the vlog docs](../vlog/README.md).
 
 Accessing the URL params for the request (such as `/users/:uuid`) is done with `ctx.Params`, and `ctx.RespHeaders` can be used to set response headers if needed.
 
-`Ctx` can also be used to easily set a request ID, with `ctx.RequestID`. The Request ID is cached on the object, and so calling it multiple times will return the same value.
+`Ctx` can also be used to easily get a request ID, with `ctx.RequestID()`. The Request ID is generated and cached on the object, and so calling it multiple times will return the same value. If you prefer to set your own Request ID, `ctx.UseRequestID()` will do the trick.
 
 ## What's to come?
 
