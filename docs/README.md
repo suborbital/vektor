@@ -132,7 +132,7 @@ v1.GET("/events", HandleEventsV1)
 ```
 This example shows a group created with three middleware. The first adds the `Content-Type` response header (and is included with `vk`), the second and third are the examples from above. When the group is mounted to the server, the chain of middleware are put in place, and are run before the registered handler. When groups are nested, the middleware from the parent group are run before the middleware of any child groups. In the example of nested groups above, any middleware set on the `apiGroup` groups would run before any middleware set on the `v1` or `v2` groups.
 
-Afterware is similar, but is run _after_ the request handler. Who knew! Afterware cannot modify response body or status code, but can modify response headers using the `ctx` object. Here's an example:
+Afterware is similar, but is run _after_ the request handler. Who knew! Afterware cannot modify response body or status code, but can modify response headers using the `ctx` object. Afterware will **always run**, even if something earlier in the request chain fails. Here's an example:
 
 ```golang
 func logAfter(r *http.Request, ctx *vk.Ctx) {
@@ -238,11 +238,11 @@ Each request handler is passed a `vk.Ctx` object, which is a context object for 
 
 `Ctx` includes a standard Go `context.Context` which can be used as a pseudo key/value store using `ctx.Set()` and `ctx.Get()`. This allows passing things into request handlers such as database connections or other persistent objects. Middleware and Afterware can access the `Ctx` to modify it, or access data from it.
 
-The server's configured `vlog.Logger` object is included (`ctx.Log`) for logging within request handlers, and a shortcut for setting the logger's scope for the current request exists with `ctx.UseScope(...)`. You can learn about scope in [the vlog docs](../vlog/README.md).
+The server's configured `vlog.Logger` object is included (`ctx.Log`) for logging within request handlers, and a shortcut for setting the logger's scope for the current request exists with `ctx.UseScope(...)`. You can learn about scope in [the vlog docs](../vlog/README.md). A default scope will always be set with the request ID included.
 
 Accessing the URL params for the request (such as `/users/:uuid`) is done with `ctx.Params`, and `ctx.RespHeaders` can be used to set response headers if needed.
 
-`Ctx` can also be used to easily get a request ID, with `ctx.RequestID()`. The Request ID is generated and cached on the object, and so calling it multiple times will return the same value. If you prefer to set your own Request ID, `ctx.UseRequestID()` will do the trick.
+`Ctx` can also be used to easily get a request ID, with `ctx.RequestID()`. The Request ID is generated and cached on the object, and so calling it multiple times will return the same value. If you prefer to set your own Request ID, `ctx.UseRequestID()` will do the trick, however it will mean the first log message for the request will have a different ID as it uses the default ID generated for the `ctx`.
 
 ## What's to come?
 
