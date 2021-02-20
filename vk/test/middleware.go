@@ -8,12 +8,14 @@ import (
 )
 
 type reqScope struct {
-	ReqID string `json:"req_id"`
+	ReqID  string `json:"req_id"`
+	Foobar string `json:"foobar"`
 }
 
 func setScopeMiddleware(r *http.Request, ctx *vk.Ctx) error {
 	scope := reqScope{
-		ReqID: "asdfghj",
+		ReqID:  ctx.RequestID(),
+		Foobar: "barbaz",
 	}
 
 	ctx.UseScope(scope)
