@@ -10,3 +10,5 @@ test:
 
 deps:
 	go get -u -d ./...
+
+.PHONY: vk/tester vk/tester/run test deps
