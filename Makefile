@@ -1,8 +1,8 @@
 
-build/vk/test:
+vk/tester:
 	GO111MODULE=on go build ./vk/test
 
-run/vk/test: build/vk/test
+vk/tester/run: vk/tester
 	./test
 
 test:
@@ -10,3 +10,5 @@ test:
 
 deps:
 	go get -u -d ./...
+
+.PHONY: vk/tester vk/tester/run test deps

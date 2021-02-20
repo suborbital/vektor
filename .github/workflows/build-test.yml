@@ -10,7 +10,7 @@ jobs:
     - name: Set up Go 1.15
       uses: actions/setup-go@v1
       with:
-        go-version: 1.15.7
+        go-version: 1.16
       id: go
 
     - name: Check out code into the Go module directory
@@ -21,7 +21,7 @@ jobs:
         go get -v -t -d ./...
 
     - name: Build
-      run: make build/vk/test
+      run: make vk/tester
     
     - name: Test
       run: make test
