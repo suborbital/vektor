@@ -67,4 +67,4 @@ That's just the beginning! Vektor includes powerful features like composable mid
 
 ## ✨ To learn about everything Vektor can do, visit the [guide](https://vektor.suborbital.dev) ✨
 
-Copyright Suborbital contributors 2020
+Copyright Suborbital contributors 2021
