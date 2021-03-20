@@ -26,6 +26,7 @@ func setScopeMiddleware(r *http.Request, ctx *vk.Ctx) error {
 func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
 	if strings.Contains(r.URL.Path, "hack") {
 		ctx.Log.ErrorString("HACKER!!")
+		ctx.Log.Debug("but maybe they're nice")
 
 		return vk.E(403, "begone, hacker")
 	}
