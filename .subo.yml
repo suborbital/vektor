@@ -1,6 +1,7 @@
 dotVersionFiles:
 
 preMakeTargets:
+  - vk/tester
   - test
 
 postMakeTargets:
