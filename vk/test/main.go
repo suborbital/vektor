@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/suborbital/vektor/vk"
-	"github.com/suborbital/vektor/vlog"
 )
 
 type testMeta struct {
@@ -13,15 +12,8 @@ type testMeta struct {
 }
 
 func main() {
-	logger := vlog.Default(
-		vlog.Level(vlog.LogLevelTrace),
-		vlog.AppMeta(testMeta{Version: "v0.1.1"}),
-		vlog.ToFile("/Users/cohix-16/.op/logfile.log"),
-	)
-
 	server := vk.New(
 		vk.UseAppName("vk tester"),
-		vk.UseLogger(logger),
 		vk.UseEnvPrefix("APP"),
 		vk.UseInsecureHTTP(8080),
 	)

@@ -39,7 +39,7 @@ UseDomain(domain string) | Enable LetsEncrypt support with the provided domain n
 UseInsecureHTTP(port int) | Choose the port on which to serve requests. Default is port 443. | `VK_HTTP_PORT`
 UseAppName(name string) | When the application starts, `name` will be logged. Empty by default. | `VK_APP_NAME`
 UseEnvPrefix(prefix string) | Use `prefix` instead of `VK` for environment variables, for example `APP_HTTP_PORT` instead of `VK_HTTP_PORT`. | N/A
-UseLogger(logger *vlog.Logger) | Set the logger object to be used. The logger is used internally by `vk` and is available to all handler functions via the `ctx` object. `vlog.Default` is used by default. | N/A
+UseLogger(logger *vlog.Logger) | Set the logger object to be used. The logger is used internally by `vk` and is available to all handler functions via the `ctx` object. If this option is not passed, `vlog.Default` is used, and its environment variable prefix set to the same as vk's. (`VK` by default). | N/A
 
 Each of the options can be set using the modifier function, or by setting the associated environment variable. The environment variable will override the modifier function.
 
