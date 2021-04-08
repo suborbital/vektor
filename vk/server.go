@@ -56,7 +56,7 @@ func (s *Server) Start() error {
 
 func createGoServer(options *Options, handler http.Handler) *http.Server {
 	if useHTTP := options.ShouldUseHTTP(); useHTTP {
-		return goHTTPServerWithPort(options.HTTPPort, handler)
+		return goHTTPServerWithPort(options, handler)
 	}
 
 	return goTLSServerWithDomain(options, handler)
@@ -91,9 +91,11 @@ func goTLSServerWithDomain(options *Options, handler http.Handler) *http.Server 
 	return s
 }
 
-func goHTTPServerWithPort(port int, handler http.Handler) *http.Server {
+func goHTTPServerWithPort(options *Options, handler http.Handler) *http.Server {
+	options.Logger.Warn("configured to use HTTP with no TLS")
+
 	s := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", options.HTTPPort),
 		Handler: handler,
 	}
 
