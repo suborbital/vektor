@@ -15,7 +15,7 @@ func main() {
 	server := vk.New(
 		vk.UseAppName("vk tester"),
 		vk.UseEnvPrefix("APP"),
-		vk.UseInsecureHTTP(8080),
+		vk.UseHTTPPort(9090),
 	)
 
 	server.GET("/f", HandleFound)

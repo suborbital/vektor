@@ -36,7 +36,7 @@ The included `OptionsModifiers` are:
 Option | Description | ENV key
 --- | --- | ---
 UseDomain(domain string) | Enable LetsEncrypt support with the provided domain name (will serve on :80 and :443 for challenge server and API server). LetsEncrypt is disabled by default. | `VK_DOMAIN`
-UseInsecureHTTP(port int) | Choose the port on which to serve requests. Default is port 443. | `VK_HTTP_PORT`
+UseHTTPPort(port int) | Choose an HTTP port on which to serve requests. When using TLS, the LetsEncrypt challenge server will run on the configured HTTP port. | `VK_HTTP_PORT`
 UseAppName(name string) | When the application starts, `name` will be logged. Empty by default. | `VK_APP_NAME`
 UseEnvPrefix(prefix string) | Use `prefix` instead of `VK` for environment variables, for example `APP_HTTP_PORT` instead of `VK_HTTP_PORT`. | N/A
 UseLogger(logger *vlog.Logger) | Set the logger object to be used. The logger is used internally by `vk` and is available to all handler functions via the `ctx` object. If this option is not passed, `vlog.Default` is used, and its environment variable prefix set to the same as vk's. (`VK` by default). | N/A
