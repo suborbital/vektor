@@ -63,28 +63,41 @@ func createGoServer(options *Options, handler http.Handler) *http.Server {
 }
 
 func goTLSServerWithDomain(options *Options, handler http.Handler) *http.Server {
-	if options.Domain != "" {
+	if options.TLSConfig != nil {
+		options.Logger.Info("configured for HTTPS with custom configuration")
+	} else if options.Domain != "" {
 		options.Logger.Info("configured for HTTPS using domain", options.Domain)
 	}
 
-	m := &autocert.Manager{
-		Cache:      autocert.DirCache("~/.autocert"),
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(options.Domain),
+	tlsConfig := options.TLSConfig
+
+	if tlsConfig == nil {
+		m := &autocert.Manager{
+			Cache:      autocert.DirCache("~/.autocert"),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(options.Domain),
+		}
+
+		addr := fmt.Sprintf(":%d", options.HTTPPort)
+		if options.HTTPPort == 0 {
+			addr = ":8080"
+		}
+
+		options.Logger.Info("serving TLS challenges on", addr)
+
+		go http.ListenAndServe(addr, m.HTTPHandler(nil))
+
+		tlsConfig = &tls.Config{GetCertificate: m.GetCertificate}
 	}
 
-	addr := fmt.Sprintf(":%d", options.HTTPPort)
-	if options.HTTPPort == 0 {
-		addr = ":8080"
+	addr := fmt.Sprintf(":%d", options.TLSPort)
+	if options.TLSPort == 0 {
+		addr = ":443"
 	}
-
-	options.Logger.Info("serving TLS challenges on", addr)
-
-	go http.ListenAndServe(addr, m.HTTPHandler(nil))
 
 	s := &http.Server{
-		Addr:      ":443",
-		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
+		Addr:      addr,
+		TLSConfig: tlsConfig,
 		Handler:   handler,
 	}
 
