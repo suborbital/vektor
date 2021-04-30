@@ -36,6 +36,8 @@ The included `OptionsModifiers` are:
 Option | Description | ENV key
 --- | --- | ---
 UseDomain(domain string) | Enable LetsEncrypt support with the provided domain name (will serve on :80 and :443 for challenge server and API server). LetsEncrypt is disabled by default. | `VK_DOMAIN`
+UseTLSConfig(config *tls.Config) | Enable TLS and use the provided TLS config to serve HTTPS. This will override the `domain` option. | N/A
+UseTLSPort(port int) | Choose an HTTPS port on which to serve requests. | `VK_TLS_PORT`
 UseHTTPPort(port int) | Choose an HTTP port on which to serve requests. When using TLS, the LetsEncrypt challenge server will run on the configured HTTP port. | `VK_HTTP_PORT`
 UseAppName(name string) | When the application starts, `name` will be logged. Empty by default. | `VK_APP_NAME`
 UseEnvPrefix(prefix string) | Use `prefix` instead of `VK` for environment variables, for example `APP_HTTP_PORT` instead of `VK_HTTP_PORT`. | N/A

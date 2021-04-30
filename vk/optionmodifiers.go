@@ -24,6 +24,13 @@ func UseTLSConfig(config *tls.Config) OptionsModifier {
 	}
 }
 
+// UseTLSPort sets the HTTPS port to be used:
+func UseTLSPort(port int) OptionsModifier {
+	return func(o *Options) {
+		o.TLSPort = port
+	}
+}
+
 // UseHTTPPort sets the HTTP port to be used:
 // If domain is set, HTTP port will be used for LetsEncrypt challenge server
 // If domain is NOT set, this option will put VK in insecure HTTP mode
