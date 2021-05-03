@@ -2,6 +2,7 @@ package vk
 
 import (
 	"context"
+	"crypto/tls"
 
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-envconfig"
@@ -10,10 +11,12 @@ import (
 
 // Options are the available options for Server
 type Options struct {
-	AppName   string `env:"_APP_NAME"`
-	Domain    string `env:"_DOMAIN"`
-	HTTPPort  int    `env:"_HTTP_PORT"`
-	EnvPrefix string `env:"-"`
+	AppName   string      `env:"_APP_NAME"`
+	Domain    string      `env:"_DOMAIN"`
+	HTTPPort  int         `env:"_HTTP_PORT"`
+	TLSPort   int         `env:"_TLS_PORT"`
+	TLSConfig *tls.Config `env:"-"`
+	EnvPrefix string      `env:"-"`
 	Logger    *vlog.Logger
 }
 
@@ -35,9 +38,9 @@ func newOptsWithModifiers(mods ...OptionsModifier) *Options {
 	return options
 }
 
-// ShouldUseTLS returns true if domain is set and TLS should be used
+// ShouldUseTLS returns true if domain is set and/or TLS is configured
 func (o *Options) ShouldUseTLS() bool {
-	return o.Domain != ""
+	return o.Domain != "" || o.TLSConfig != nil
 }
 
 // HTTPPortSet returns true if the HTTP port is set
@@ -76,5 +79,9 @@ func (o *Options) replaceFieldsIfNeeded(replacement *Options) {
 
 	if replacement.HTTPPort != 0 {
 		o.HTTPPort = replacement.HTTPPort
+	}
+
+	if replacement.TLSPort != 0 {
+		o.TLSPort = replacement.TLSPort
 	}
 }

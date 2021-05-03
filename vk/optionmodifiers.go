@@ -1,6 +1,8 @@
 package vk
 
 import (
+	"crypto/tls"
+
 	"github.com/suborbital/vektor/vlog"
 )
 
@@ -11,6 +13,21 @@ type OptionsModifier func(*Options)
 func UseDomain(domain string) OptionsModifier {
 	return func(o *Options) {
 		o.Domain = domain
+	}
+}
+
+// UseTLSConfig sets a TLS config that will be used for HTTPS
+// This will take precedence over the Domain option in all cases
+func UseTLSConfig(config *tls.Config) OptionsModifier {
+	return func(o *Options) {
+		o.TLSConfig = config
+	}
+}
+
+// UseTLSPort sets the HTTPS port to be used:
+func UseTLSPort(port int) OptionsModifier {
+	return func(o *Options) {
+		o.TLSPort = port
 	}
 }
 
