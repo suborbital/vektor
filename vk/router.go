@@ -124,3 +124,10 @@ func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
 		ctx.Log.Info(r.Method, r.URL.String(), fmt.Sprintf("completed (%d: %s)", status, http.StatusText(status)))
 	}
 }
+
+// canHandle returns true if there's a registered handler that can
+// handle the method and path provided or not
+func (rt *Router) canHandle(method, path string) bool {
+	handler, _, _ := rt.hrouter.Lookup(method, path)
+	return handler != nil
+}

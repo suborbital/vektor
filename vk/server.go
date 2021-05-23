@@ -102,6 +102,14 @@ func (s *Server) SwapRouter(router *Router) {
 	s.router = router
 }
 
+// CanHandle returns true if the server can handle a given method and path
+func (s *Server) CanHandle(method, path string) bool {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	return s.router.canHandle(method, path)
+}
+
 // GET is a shortcut for router.Handle(http.MethodGet, path, handle)
 func (s *Server) GET(path string, handler HandlerFunc) {
 	if s.started.Load().(bool) {
