@@ -4,7 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"sync"
+	"sync/atomic"
 
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -12,7 +15,10 @@ const defaultEnvPrefix = "VK"
 
 // Server represents a vektor API server
 type Server struct {
-	*Router
+	router  *Router
+	lock    sync.RWMutex
+	started atomic.Value
+
 	server  *http.Server
 	options *Options
 }
@@ -21,23 +27,33 @@ type Server struct {
 func New(opts ...OptionsModifier) *Server {
 	options := newOptsWithModifiers(opts...)
 
-	router := routerWithOptions(options)
-
-	server := createGoServer(options, router)
+	router := NewRouterWithOptions(options)
 
 	s := &Server{
-		Router:  router,
-		server:  server,
+		router:  router,
+		lock:    sync.RWMutex{},
+		started: atomic.Value{},
 		options: options,
 	}
+
+	s.started.Store(false)
+
+	// yes this creates a circular reference,
+	// but the VK server and HTTP server are
+	// extremely tightly wound together so
+	// we have to make this compromise
+	s.server = createGoServer(options, s)
 
 	return s
 }
 
 // Start starts the server listening
 func (s *Server) Start() error {
+	// lock the router modifiers (GET, POST etc.)
+	s.started.Store(true)
+
 	// mount the root set of routes before starting
-	s.mountGroup(s.Router.rootGroup())
+	s.router.Finalize()
 
 	if s.options.AppName != "" {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
@@ -52,6 +68,117 @@ func (s *Server) Start() error {
 	}
 
 	return s.server.ListenAndServeTLS("", "")
+}
+
+// ServeHTTP serves HTTP requests using the internal router while allowing
+// said router to be swapped out underneath at any time in a thread-safe way
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// run the inspector with a dereferenced pointer
+	// so that it can view but not change said request
+	//
+	// we intentionally run this before the lock as it's
+	// possible the inspector may trigger a router-swap
+	// and that would cause a nasty deadlock
+	s.options.PreRouterInspector(*r)
+
+	// now lock to ensure the router isn't being swapped
+	// out from underneath us while we're serving this req
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	s.router.ServeHTTP(w, r)
+}
+
+// GET is a shortcut for router.Handle(http.MethodGet, path, handle)
+func (s *Server) GET(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.GET(path, handler)
+}
+
+// HEAD is a shortcut for router.Handle(http.MethodHead, path, handle)
+func (s *Server) HEAD(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.HEAD(path, handler)
+}
+
+// OPTIONS is a shortcut for router.Handle(http.MethodOptions, path, handle)
+func (s *Server) OPTIONS(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.OPTIONS(path, handler)
+}
+
+// POST is a shortcut for router.Handle(http.MethodPost, path, handle)
+func (s *Server) POST(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.POST(path, handler)
+}
+
+// PUT is a shortcut for router.Handle(http.MethodPut, path, handle)
+func (s *Server) PUT(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.PUT(path, handler)
+}
+
+// PATCH is a shortcut for router.Handle(http.MethodPatch, path, handle)
+func (s *Server) PATCH(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.PATCH(path, handler)
+}
+
+// DELETE is a shortcut for router.Handle(http.MethodDelete, path, handle)
+func (s *Server) DELETE(path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.DELETE(path, handler)
+}
+
+// Handle adds a route to be handled
+func (s *Server) Handle(method, path string, handler HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.Handle(method, path, handler)
+}
+
+// AddGroup adds a RouteGroup to be handled
+func (s *Server) AddGroup(group *RouteGroup) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.AddGroup(group)
+}
+
+// HandleHTTP allows vk to handle a standard http.HandlerFunc
+func (s *Server) HandleHTTP(method, path string, handler http.HandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.router.hrouter.Handle(method, path, func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		handler(w, r)
+	})
 }
 
 func createGoServer(options *Options, handler http.Handler) *http.Server {

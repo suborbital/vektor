@@ -2,6 +2,7 @@ package vk
 
 import (
 	"crypto/tls"
+	"net/http"
 
 	"github.com/suborbital/vektor/vlog"
 )
@@ -58,5 +59,15 @@ func UseAppName(name string) OptionsModifier {
 func UseEnvPrefix(prefix string) OptionsModifier {
 	return func(o *Options) {
 		o.EnvPrefix = prefix
+	}
+}
+
+// UseInspector sets a function that will be allowed to inspect every HTTP request
+// before it reaches VK's internal router, but cannot modify said request or affect
+// the handling of said request in any way. Use at your own risk, as it may introduce
+// performance issues if not used correctly.
+func UseInspector(isp func(http.Request)) OptionsModifier {
+	return func(o *Options) {
+		o.PreRouterInspector = isp
 	}
 }

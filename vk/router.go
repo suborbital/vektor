@@ -20,23 +20,23 @@ type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
 
 // Router handles the responses on behalf of the server
 type Router struct {
-	hrouter   *httprouter.Router
-	root      *RouteGroup
-	getLogger func() *vlog.Logger
+	*RouteGroup // the "root" RouteGroup that is mounted at server start
+	hrouter     *httprouter.Router
+	getLogger   func() *vlog.Logger
 }
 
 type defaultScope struct {
 	RequestID string `json:"request_id"`
 }
 
-// routerWithOptions returns a router with the specified options and optional middleware on the root route group
-func routerWithOptions(options *Options, middleware ...Middleware) *Router {
+// NewRouterWithOptions returns a router with the specified options and optional middleware on the root route group
+func NewRouterWithOptions(options *Options, middleware ...Middleware) *Router {
 	// add the logger middleware first
 	middleware = append([]Middleware{loggerMiddleware()}, middleware...)
 
 	r := &Router{
-		hrouter: httprouter.New(),
-		root:    Group("").Before(middleware...),
+		RouteGroup: Group("").Before(middleware...),
+		hrouter:    httprouter.New(),
 		getLogger: func() *vlog.Logger {
 			return options.Logger
 		},
@@ -60,73 +60,20 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET is a shortcut for router.Handle(http.MethodGet, path, handle)
-func (rt *Router) GET(path string, handler HandlerFunc) {
-	rt.root.GET(path, handler)
-}
-
-// HEAD is a shortcut for router.Handle(http.MethodHead, path, handle)
-func (rt *Router) HEAD(path string, handler HandlerFunc) {
-	rt.root.HEAD(path, handler)
-}
-
-// OPTIONS is a shortcut for router.Handle(http.MethodOptions, path, handle)
-func (rt *Router) OPTIONS(path string, handler HandlerFunc) {
-	rt.root.OPTIONS(path, handler)
-}
-
-// POST is a shortcut for router.Handle(http.MethodPost, path, handle)
-func (rt *Router) POST(path string, handler HandlerFunc) {
-	rt.root.POST(path, handler)
-}
-
-// PUT is a shortcut for router.Handle(http.MethodPut, path, handle)
-func (rt *Router) PUT(path string, handler HandlerFunc) {
-	rt.root.PUT(path, handler)
-}
-
-// PATCH is a shortcut for router.Handle(http.MethodPatch, path, handle)
-func (rt *Router) PATCH(path string, handler HandlerFunc) {
-	rt.root.PATCH(path, handler)
-}
-
-// DELETE is a shortcut for router.Handle(http.MethodDelete, path, handle)
-func (rt *Router) DELETE(path string, handler HandlerFunc) {
-	rt.root.DELETE(path, handler)
-}
-
-// Handle adds a route to be handled
-func (rt *Router) Handle(method, path string, handler HandlerFunc) {
-	rt.root.Handle(method, path, handler)
-}
-
-// HandleHTTP allows vk to handle a standard http.HandlerFunc
-func (rt *Router) HandleHTTP(method, path string, handler http.HandlerFunc) {
-	rt.hrouter.Handle(method, path, func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		handler(w, r)
-	})
-}
-
-// AddGroup adds a group to the router's root group,
-// which is mounted to the server upon Start()
-func (rt *Router) AddGroup(group *RouteGroup) {
-	rt.root.AddGroup(group)
+// Finalize mounts the root group to prepare the Router to handle requests
+func (rt *Router) Finalize() {
+	rt.mountGroup(rt.RouteGroup)
 }
 
 // mountGroup adds a group of handlers to the httprouter
 func (rt *Router) mountGroup(group *RouteGroup) {
 	for _, r := range group.routeHandlers() {
 		rt.getLogger().Debug("mounting route", r.Method, r.Path)
-		rt.hrouter.Handle(r.Method, r.Path, rt.with(r.Handler))
+		rt.hrouter.Handle(r.Method, r.Path, rt.handleWrap(r.Handler))
 	}
 }
 
-// rootGroup returns the root RouteGroup to be mounted before server start
-func (rt *Router) rootGroup() *RouteGroup {
-	return rt.root
-}
-
-// with returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
+// handleWrap returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
 //
 // inner returns a body and an error;
 // the body can can be:
@@ -138,13 +85,13 @@ func (rt *Router) rootGroup() *RouteGroup {
 // - a vk.Error type (status and message are written to w)
 // - any other error object (status 500 and error.Error() are written to w)
 //
-func (rt *Router) with(inner HandlerFunc) httprouter.Handle {
+func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		var status int
 		var body []byte
 		var detectedCType contentType
 
-		// create a context with the configured logger
+		// create a context handleWrap the configured logger
 		// (and use the ctx.Log for all remaining logging
 		// in case a scope was set on it)
 		ctx := NewCtx(rt.getLogger(), params, w.Header())
