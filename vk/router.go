@@ -29,20 +29,25 @@ type defaultScope struct {
 	RequestID string `json:"request_id"`
 }
 
-// NewRouterWithOptions returns a router with the specified options and optional middleware on the root route group
-func NewRouterWithOptions(options *Options, middleware ...Middleware) *Router {
-	// add the logger middleware first
-	middleware = append([]Middleware{loggerMiddleware()}, middleware...)
+// NewRouter creates a new Router
+func NewRouter(logger *vlog.Logger) *Router {
+	// add the logger middleware
+	middleware := []Middleware{loggerMiddleware()}
 
 	r := &Router{
 		RouteGroup: Group("").Before(middleware...),
 		hrouter:    httprouter.New(),
 		getLogger: func() *vlog.Logger {
-			return options.Logger
+			return logger
 		},
 	}
 
 	return r
+}
+
+// Finalize mounts the root group to prepare the Router to handle requests
+func (rt *Router) Finalize() {
+	rt.mountGroup(rt.RouteGroup)
 }
 
 //ServeHTTP serves HTTP requests
@@ -58,11 +63,6 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// let httprouter handle the fallthrough cases
 		rt.hrouter.ServeHTTP(w, r)
 	}
-}
-
-// Finalize mounts the root group to prepare the Router to handle requests
-func (rt *Router) Finalize() {
-	rt.mountGroup(rt.RouteGroup)
 }
 
 // mountGroup adds a group of handlers to the httprouter

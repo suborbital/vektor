@@ -1,21 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/suborbital/vektor/vk"
 )
 
-type testMeta struct {
-	Version string `json:"version"`
-}
-
 func main() {
 	server := vk.New(
 		vk.UseAppName("vk tester"),
 		vk.UseEnvPrefix("APP"),
 		vk.UseHTTPPort(9090),
+		vk.UseInspector(func(r http.Request) {
+			fmt.Println("pre-router:", r.URL.Path)
+		}),
 	)
 
 	server.GET("/f", HandleFound)
@@ -37,6 +37,18 @@ func main() {
 	server.AddGroup(api)
 
 	server.HandleHTTP(http.MethodGet, "/http", HandleHTTP)
+
+	// uncomment to test router swapping
+	// go func() {
+	// 	time.Sleep(time.Second * 5)
+
+	// 	newRouter := vk.NewRouter(vlog.Default())
+	// 	newRouter.GET("/f", HandleFound)
+
+	// 	server.SwapRouter(newRouter)
+
+	// 	fmt.Println("swap complete!")
+	// }()
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)

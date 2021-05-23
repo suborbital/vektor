@@ -27,7 +27,7 @@ type Server struct {
 func New(opts ...OptionsModifier) *Server {
 	options := newOptsWithModifiers(opts...)
 
-	router := NewRouterWithOptions(options)
+	router := NewRouter(options.Logger)
 
 	s := &Server{
 		router:  router,
@@ -87,6 +87,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer s.lock.RUnlock()
 
 	s.router.ServeHTTP(w, r)
+}
+
+// SwapRouter allows swapping VK's router out in realtime while
+// continuing to serve requests in the background
+func (s *Server) SwapRouter(router *Router) {
+	router.Finalize()
+
+	// lock after Finalizing the router so
+	// the lock is released as quickly as possible
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.router = router
 }
 
 // GET is a shortcut for router.Handle(http.MethodGet, path, handle)
