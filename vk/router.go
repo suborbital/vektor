@@ -3,6 +3,7 @@ package vk
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/suborbital/vektor/vlog"
@@ -20,9 +21,11 @@ type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
 
 // Router handles the responses on behalf of the server
 type Router struct {
-	*RouteGroup // the "root" RouteGroup that is mounted at server start
-	hrouter     *httprouter.Router
-	getLogger   func() *vlog.Logger
+	*RouteGroup                     // the "root" RouteGroup that is mounted at server start
+	hrouter      *httprouter.Router // the internal 'actual' router
+	finalizeOnce sync.Once          // ensure that the root only gets mounted once
+
+	log *vlog.Logger
 }
 
 type defaultScope struct {
@@ -35,11 +38,10 @@ func NewRouter(logger *vlog.Logger) *Router {
 	middleware := []Middleware{loggerMiddleware()}
 
 	r := &Router{
-		RouteGroup: Group("").Before(middleware...),
-		hrouter:    httprouter.New(),
-		getLogger: func() *vlog.Logger {
-			return logger
-		},
+		RouteGroup:   Group("").Before(middleware...),
+		hrouter:      httprouter.New(),
+		finalizeOnce: sync.Once{},
+		log:          logger,
 	}
 
 	return r
@@ -47,7 +49,9 @@ func NewRouter(logger *vlog.Logger) *Router {
 
 // Finalize mounts the root group to prepare the Router to handle requests
 func (rt *Router) Finalize() {
-	rt.mountGroup(rt.RouteGroup)
+	rt.finalizeOnce.Do(func() {
+		rt.mountGroup(rt.RouteGroup)
+	})
 }
 
 //ServeHTTP serves HTTP requests
@@ -58,7 +62,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if handler != nil {
 		handler(w, r, params)
 	} else {
-		rt.getLogger().Debug("not handled:", r.Method, r.URL.String())
+		rt.log.Debug("not handled:", r.Method, r.URL.String())
 
 		// let httprouter handle the fallthrough cases
 		rt.hrouter.ServeHTTP(w, r)
@@ -68,7 +72,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // mountGroup adds a group of handlers to the httprouter
 func (rt *Router) mountGroup(group *RouteGroup) {
 	for _, r := range group.routeHandlers() {
-		rt.getLogger().Debug("mounting route", r.Method, r.Path)
+		rt.log.Debug("mounting route", r.Method, r.Path)
 		rt.hrouter.Handle(r.Method, r.Path, rt.handleWrap(r.Handler))
 	}
 }
@@ -94,7 +98,7 @@ func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
 		// create a context handleWrap the configured logger
 		// (and use the ctx.Log for all remaining logging
 		// in case a scope was set on it)
-		ctx := NewCtx(rt.getLogger(), params, w.Header())
+		ctx := NewCtx(rt.log, params, w.Header())
 		ctx.UseScope(defaultScope{ctx.RequestID()})
 
 		resp, err := inner(r, ctx)
