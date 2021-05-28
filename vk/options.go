@@ -3,6 +3,7 @@ package vk
 import (
 	"context"
 	"crypto/tls"
+	"net/http"
 
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-envconfig"
@@ -11,13 +12,15 @@ import (
 
 // Options are the available options for Server
 type Options struct {
-	AppName   string      `env:"_APP_NAME"`
-	Domain    string      `env:"_DOMAIN"`
-	HTTPPort  int         `env:"_HTTP_PORT"`
-	TLSPort   int         `env:"_TLS_PORT"`
-	TLSConfig *tls.Config `env:"-"`
-	EnvPrefix string      `env:"-"`
-	Logger    *vlog.Logger
+	AppName   string       `env:"_APP_NAME"`
+	Domain    string       `env:"_DOMAIN"`
+	HTTPPort  int          `env:"_HTTP_PORT"`
+	TLSPort   int          `env:"_TLS_PORT"`
+	TLSConfig *tls.Config  `env:"-"`
+	EnvPrefix string       `env:"-"`
+	Logger    *vlog.Logger `env:"-"`
+
+	PreRouterInspector func(http.Request) `env:"-"`
 }
 
 func newOptsWithModifiers(mods ...OptionsModifier) *Options {
@@ -57,6 +60,11 @@ func (o *Options) ShouldUseHTTP() bool {
 func (o *Options) finalize(prefix string) {
 	if o.Logger == nil {
 		o.Logger = vlog.Default(vlog.EnvPrefix(prefix))
+	}
+
+	// if no inspector was set, create an empty one
+	if o.PreRouterInspector == nil {
+		o.PreRouterInspector = func(_ http.Request) {}
 	}
 
 	envOpts := Options{}

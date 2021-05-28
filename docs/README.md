@@ -76,6 +76,7 @@ server.POST("/groups", HandleCreateGroup)
 ```
 If you prefer to pass the HTTP method as an argument, use `server.Handle()` instead.
 
+**Note that attempting to add new handlers after calling `server.Start()` is a no-op**
 
 ## Route groups
 
