@@ -81,7 +81,7 @@ func LogPrefix(prefix string)
 func EnvPrefix(prefix string)
 
 // AppMeta sets the meta object to be included with structured logs (not configurable from env vars)
-func AppMeta(meta interface {})
+func AppMeta(meta interface{})
 
 // PreLogHook sets a function that will be called every time something
 // is logged. The value will be the structured JSON for the log line
