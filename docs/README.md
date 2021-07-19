@@ -31,6 +31,15 @@ server := vk.New(
 	vk.UseDomain("vektor.example.com"),
 )
 ```
+
+To create a server object without TLS support, omit the `vk.UseDomain()` modifier and specify an HTTP port to listen on.
+```golang
+server := vk.New(
+	vk.UseAppName("Vektor API HTTP-only"),
+	vk.UseHTTPPort(8000),
+)
+```
+
 The included `OptionsModifiers` are:
 
 Option | Description | ENV key
@@ -126,7 +135,7 @@ func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
 	return nil
 }
 ```
-As you can see, middleware have a similar function signature to `vk.HandlerFunc`, but only return an error. The first example modifies the request context to add a response header. The second example detects a hacker and returns an error, which is handled exactly like any other error response (see below). Returning an error from a Middleware prevents the request from ever reaching the registered handler.
+Middleware have a similar function signature to `vk.HandlerFunc`, but only return an error. The first example modifies the request context to add a response header. The second example detects a hacker and returns an error, which is handled exactly like any other error response (see below). Returning an error from a Middleware prevents the request from ever reaching the registered handler.
 
 Middleware are applied to route groups with the `Before` method:
 ```golang
@@ -249,4 +258,4 @@ Accessing the URL params for the request (such as `/users/:uuid`) is done with `
 
 ## What's to come?
 
-`Vektor` is under active development. It intertwines closely with [Hive](https://github.com/suborbital/hive) and [Grav](https://github.com/suborbital/grav) to achieve Suborbital's goal of creating a platform for building scalable web services. Hive and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
+`Vektor` is under active development. It intertwines closely with [Reactr](https://github.com/suborbital/reactr) and [Grav](https://github.com/suborbital/grav) to achieve Suborbital's goal of creating a platform for building scalable web services. Reactr and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
