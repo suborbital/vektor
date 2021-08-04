@@ -58,6 +58,11 @@ func (s *Server) Start() error {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
 	}
 
+	// don't run the server if testmode is enabled
+	if s.options.TestModeSet() {
+		return nil
+	}
+
 	s.options.Logger.Info("serving on", s.server.Addr)
 
 	if !s.options.HTTPPortSet() && !s.options.ShouldUseTLS() {

@@ -19,6 +19,7 @@ type Options struct {
 	TLSConfig *tls.Config  `env:"-"`
 	EnvPrefix string       `env:"-"`
 	Logger    *vlog.Logger `env:"-"`
+	TestMode  bool         `env:"_TEST_MODE"`
 
 	PreRouterInspector func(http.Request) `env:"-"`
 }
@@ -54,6 +55,11 @@ func (o *Options) HTTPPortSet() bool {
 // ShouldUseHTTP returns true if insecure HTTP should be used
 func (o *Options) ShouldUseHTTP() bool {
 	return !o.ShouldUseTLS() && o.HTTPPortSet()
+}
+
+// TestModeSet returns true if TestMode has been enabled
+func (o *Options) TestModeSet() bool {
+	return o.TestMode
 }
 
 // finalize "locks in" the options by overriding any existing options with the version from the environment, and setting the default logger if needed
