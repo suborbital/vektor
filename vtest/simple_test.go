@@ -9,13 +9,13 @@ import (
 	"github.com/suborbital/vektor/vtest"
 )
 
-func HandleHello(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
-	return vk.R(200, "hello"), nil
-}
-
 type simpleStruct struct {
 	Name string `json:"name"`
 	Age  int    `json:"age"`
+}
+
+func HandleHello(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+	return vk.R(200, "hello"), nil
 }
 
 func HandleSimpleStruct(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
@@ -32,6 +32,7 @@ func HandleSetHeaders(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 func TestVtest(t *testing.T) {
 	// suppress logging
 	logger := vlog.Default(vlog.Level(vlog.LogLevelError), vlog.ToFile("/dev/null"))
+
 	server := vk.New(
 		vk.UseLogger(logger),
 		vk.UseTestMode(true),
@@ -42,16 +43,25 @@ func TestVtest(t *testing.T) {
 	server.GET("/simple", HandleSimpleStruct)
 
 	vt := vtest.New(server)
+
 	req, _ := http.NewRequest(http.MethodGet, "/hello", nil)
 
-	t.Run("hello", vt.AssertStatus(req, 200))
-	t.Run("body", vt.AssertBodyString(req, "hello"))
+	vt.Run(req, t).
+		AssertStatus(200).
+		AssertBodyString("hello")
 
 	req, _ = http.NewRequest(http.MethodGet, "/headers", nil)
 
-	headers := make(http.Header)
-	headers.Add("X-VK-TEST", "test")
-	headers.Add("X-SUBORBITAL", "rocket launch")
+	t.Run("headers", func(t *testing.T) {
+		headers := make(http.Header)
+		headers.Add("X-VK-TEST", "test")
+		headers.Add("X-SUBORBITAL", "rocket launch")
 
-	t.Run("headers", vt.AssertHeaders(req, headers))
+		vt.Run(req, t).AssertHeaders(headers)
+	})
+
+	req, _ = http.NewRequest(http.MethodGet, "/simple", nil)
+
+	vt.Run(req, t).AssertStatus(200).AssertHeader("Content-Type", "application/json")
+
 }
