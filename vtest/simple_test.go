@@ -14,15 +14,15 @@ type simpleStruct struct {
 	Age  int    `json:"age"`
 }
 
-func HandleHello(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handleHello(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return vk.R(200, "hello"), nil
 }
 
-func HandleSimpleStruct(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handleSimpleStruct(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return vk.R(200, simpleStruct{"Bob", 30}), nil
 }
 
-func HandleSetHeaders(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handleSetHeaders(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	ctx.RespHeaders.Set("X-VK-TEST", "test")
 	ctx.RespHeaders.Set("X-SUBORBITAL", "rocket launch")
 
@@ -38,9 +38,9 @@ func TestVtest(t *testing.T) {
 		vk.UseTestMode(true),
 	)
 
-	server.GET("/hello", HandleHello)
-	server.GET("/headers", HandleSetHeaders)
-	server.GET("/simple", HandleSimpleStruct)
+	server.GET("/hello", handleHello)
+	server.GET("/headers", handleSetHeaders)
+	server.GET("/simple", handleSimpleStruct)
 
 	vt := vtest.New(server)
 
@@ -63,5 +63,4 @@ func TestVtest(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodGet, "/simple", nil)
 
 	vt.Run(req, t).AssertStatus(200).AssertHeader("Content-Type", "application/json")
-
 }

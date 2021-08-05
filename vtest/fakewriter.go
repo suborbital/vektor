@@ -5,27 +5,27 @@ import (
 	"net/http"
 )
 
-type FakeResponseWriter struct {
+type fakeResponseWriter struct {
 	header http.Header
 	*bytes.Buffer
 	status int
 }
 
-// NewFakeResponseWriter creates a FakeResponseWriter for capturing Vektor responses
-func NewFakeResponseWriter() *FakeResponseWriter {
-	return &FakeResponseWriter{make(http.Header), &bytes.Buffer{}, 0}
+// newFakeResponseWriter creates a FakeResponseWriter for capturing Vektor responses
+func newFakeResponseWriter() *fakeResponseWriter {
+	return &fakeResponseWriter{make(http.Header), &bytes.Buffer{}, 0}
 }
 
 // Header implements http.ResponseWriter
-func (w *FakeResponseWriter) Header() http.Header {
+func (w *fakeResponseWriter) Header() http.Header {
 	return w.header
 }
 
 // WriteHeader implements http.ResponseWriter
-func (w *FakeResponseWriter) WriteHeader(status int) {
+func (w *fakeResponseWriter) WriteHeader(status int) {
 	w.status = status
 }
 
-func (w FakeResponseWriter) Status() int {
+func (w fakeResponseWriter) Status() int {
 	return w.status
 }

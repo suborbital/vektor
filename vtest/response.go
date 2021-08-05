@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// Response is a simplified analog to http.Response. Its methods can be chained together to perform
+// multiple assertions on a single Response.
 type Response struct {
 	Body    []byte
 	Status  int
@@ -47,6 +49,7 @@ func (r *Response) AssertHeaders(headers http.Header) *Response {
 		})
 
 	}
+
 	return r
 }
 
@@ -65,7 +68,7 @@ func (r *Response) AssertBody(body []byte) *Response {
 	return r
 }
 
-const RuneWindow = 25
+const runeWindow = 25
 
 // AssertBodyString asserts the response body is a rune-for-rune match
 func (r *Response) AssertBodyString(body string) *Response {
@@ -77,14 +80,14 @@ func (r *Response) AssertBodyString(body string) *Response {
 		min = len(resRunes)
 	}
 
-	// pretty printing for where the mismatch occurred
+	// pretty printing helpers for where the mismatch occurred
 	trimAround := func(i int, str []rune) string {
-		start := i - RuneWindow
-		if i < RuneWindow {
+		start := i - runeWindow
+		if i < runeWindow {
 			start = 0
 		}
 
-		end := i + RuneWindow
+		end := i + runeWindow
 		if len(str) < end {
 			end = len(str)
 		}
@@ -96,8 +99,8 @@ func (r *Response) AssertBodyString(body string) *Response {
 		f := trimAround(i, first)
 		s := trimAround(i, second)
 
-		offset := RuneWindow
-		if i < RuneWindow {
+		offset := runeWindow
+		if i < runeWindow {
 			offset = i
 		}
 
@@ -107,6 +110,7 @@ func (r *Response) AssertBodyString(body string) *Response {
 	for i := 0; i < min; i++ {
 		if bodyRunes[i] != resRunes[i] {
 			r.t.Errorf(`rune mismatch at index %d: %s`, i, context(i, bodyRunes, resRunes))
+
 			return r
 		}
 	}
