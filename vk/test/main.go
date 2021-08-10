@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"fmt"
@@ -8,16 +8,7 @@ import (
 	"github.com/suborbital/vektor/vk"
 )
 
-func main() {
-	server := vk.New(
-		vk.UseAppName("vk tester"),
-		vk.UseEnvPrefix("APP"),
-		vk.UseHTTPPort(9090),
-		vk.UseInspector(func(r http.Request) {
-			fmt.Println("pre-router:", r.URL.Path)
-		}),
-	)
-
+func AddRoutes(server *vk.Server) {
 	server.GET("/f", HandleFound)
 	server.POST("/f", HandleFound)
 	server.GET("/nf", HandleNotFound)
@@ -37,6 +28,19 @@ func main() {
 	server.AddGroup(api)
 
 	server.HandleHTTP(http.MethodGet, "/http", HandleHTTP)
+}
+
+func main() {
+	server := vk.New(
+		vk.UseAppName("vk tester"),
+		vk.UseEnvPrefix("APP"),
+		vk.UseHTTPPort(9090),
+		vk.UseInspector(func(r http.Request) {
+			fmt.Println("pre-router:", r.URL.Path)
+		}),
+	)
+
+	AddRoutes(server)
 
 	// uncomment to test router swapping
 	// go func() {
