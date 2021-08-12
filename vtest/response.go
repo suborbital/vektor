@@ -17,9 +17,11 @@ type Response struct {
 
 // AssertStatus asserts the HTTP status code of this Response
 func (r *Response) AssertStatus(status int) *Response {
-	if r.Status != status {
-		r.t.Errorf("got status %d, want %d", r.Status, status)
-	}
+	r.t.Run("status", func(t *testing.T) {
+		if r.Status != status {
+			t.Errorf("got status %d, want %d", r.Status, status)
+		}
+	})
 
 	return r
 }
@@ -55,15 +57,19 @@ func (r *Response) AssertHeaders(headers http.Header) *Response {
 
 // AssertBody asserts the response body is a byte-for-byte match
 func (r *Response) AssertBody(body []byte) *Response {
-	if len(body) != len(r.Body) {
-		r.t.Errorf("body length mismatch: got %d, want %d", len(r.Body), len(body))
-	}
-
-	for i, v := range body {
-		if v != r.Body[i] {
-			r.t.Errorf("byte mismatch at byte %d: got %s, want %s", i, string(r.Body[i]), string(v))
+	r.t.Run("body", func(t *testing.T) {
+		if len(body) != len(r.Body) {
+			t.Errorf("body length mismatch: got %d bytes, want %d bytes", len(r.Body), len(body))
+			t.FailNow()
 		}
-	}
+
+		for i, v := range body {
+			if v != r.Body[i] {
+				t.Errorf("byte mismatch at byte %d: got %s, want %s", i, string(r.Body[i]), string(v))
+				t.FailNow()
+			}
+		}
+	})
 
 	return r
 }
@@ -72,14 +78,6 @@ const runeWindow = 25
 
 // AssertBodyString asserts the response body is a rune-for-rune match
 func (r *Response) AssertBodyString(body string) *Response {
-	resRunes := []rune(string(r.Body))
-	bodyRunes := []rune(body)
-
-	min := len(bodyRunes)
-	if len(resRunes) < min {
-		min = len(resRunes)
-	}
-
 	// pretty printing helpers for where the mismatch occurred
 	trimAround := func(i int, str []rune) string {
 		start := i - runeWindow
@@ -107,13 +105,27 @@ func (r *Response) AssertBodyString(body string) *Response {
 		return fmt.Sprintf("\nwant: %s\n got: %s\n      %*s", f, s, offset+1, "^")
 	}
 
-	for i := 0; i < min; i++ {
-		if bodyRunes[i] != resRunes[i] {
-			r.t.Errorf(`rune mismatch at index %d: %s`, i, context(i, bodyRunes, resRunes))
+	r.t.Run("body", func(t *testing.T) {
+		resRunes := []rune(string(r.Body))
+		bodyRunes := []rune(body)
 
-			return r
+		if len(resRunes) != len(bodyRunes) {
+			t.Errorf("body length mismatch: got %d runes, want %d runes", len(resRunes), len(bodyRunes))
+			t.FailNow()
 		}
-	}
+
+		min := len(bodyRunes)
+		if len(resRunes) < min {
+			min = len(resRunes)
+		}
+
+		for i := 0; i < min; i++ {
+			if bodyRunes[i] != resRunes[i] {
+				t.Errorf(`rune mismatch at index %d: %s`, i, context(i, bodyRunes, resRunes))
+				t.FailNow()
+			}
+		}
+	})
 
 	return r
 }
