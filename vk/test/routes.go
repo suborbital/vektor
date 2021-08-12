@@ -7,6 +7,29 @@ import (
 	"github.com/suborbital/vektor/vk"
 )
 
+// AddRoutes attaches the handlers defined below to a *vk.Server
+func AddRoutes(server *vk.Server) {
+	server.GET("/f", HandleFound)
+	server.POST("/f", HandleFound)
+	server.GET("/nf", HandleNotFound)
+
+	v1 := vk.Group("/v1").Before(denyMiddleware, headerMiddleware)
+	v1.GET("/me", HandleMe)
+	v1.GET("/me/hack", HandleMe)
+
+	v2 := vk.Group("/v2").Before(setScopeMiddleware)
+	v2.GET("/you", HandleYou)
+	v2.GET("/mistake", HandleBadMistake)
+
+	api := vk.Group("/api")
+	api.AddGroup(v1)
+	api.AddGroup(v2)
+
+	server.AddGroup(api)
+
+	server.HandleHTTP(http.MethodGet, "/http", HandleHTTP)
+}
+
 // HandleFound returns 200
 func HandleFound(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	ctx.Log.Info("found!")
@@ -33,7 +56,7 @@ func HandleYou(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 
 // HandleBadMistake handles a bad mistake
 func HandleBadMistake(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
-	return nil, errors.New("this is a bad idea!!")
+	return nil, errors.New("this is a bad idea")
 }
 
 // HandleHTTP tests HTTP handlers
