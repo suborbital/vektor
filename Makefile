@@ -1,9 +1,9 @@
 
 vk/tester:
-	GO111MODULE=on go build ./vk/test
+	go build ./vk/test/cmd
 
-vk/tester/run: vk/tester
-	./test
+vk/tester/run: vk/test/cmd
+	./cmd
 
 test:
 	go test -v -count=1 ./...
