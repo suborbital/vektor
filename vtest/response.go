@@ -1,6 +1,7 @@
 package vtest
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -49,7 +50,6 @@ func (r *Response) AssertHeaders(headers http.Header) *Response {
 				r.t.Errorf("header %s: got '%s', want '%s'", key, resv, val)
 			}
 		})
-
 	}
 
 	return r
@@ -59,14 +59,12 @@ func (r *Response) AssertHeaders(headers http.Header) *Response {
 func (r *Response) AssertBody(body []byte) *Response {
 	r.t.Run("body", func(t *testing.T) {
 		if len(body) != len(r.Body) {
-			t.Errorf("body length mismatch: got %d bytes, want %d bytes", len(r.Body), len(body))
-			t.FailNow()
+			t.Fatalf("body length mismatch: got %d bytes, want %d bytes", len(r.Body), len(body))
 		}
 
 		for i, v := range body {
 			if v != r.Body[i] {
-				t.Errorf("byte mismatch at byte %d: got %s, want %s", i, string(r.Body[i]), string(v))
-				t.FailNow()
+				t.Fatalf("byte mismatch at byte %d: got %s, want %s", i, string(r.Body[i]), string(v))
 			}
 		}
 	})
@@ -110,8 +108,7 @@ func (r *Response) AssertBodyString(body string) *Response {
 		bodyRunes := []rune(body)
 
 		if len(resRunes) != len(bodyRunes) {
-			t.Errorf("body length mismatch: got %d runes, want %d runes", len(resRunes), len(bodyRunes))
-			t.FailNow()
+			t.Fatalf("body length mismatch: got %d runes, want %d runes", len(resRunes), len(bodyRunes))
 		}
 
 		min := len(bodyRunes)
@@ -121,11 +118,33 @@ func (r *Response) AssertBodyString(body string) *Response {
 
 		for i := 0; i < min; i++ {
 			if bodyRunes[i] != resRunes[i] {
-				t.Errorf(`rune mismatch at index %d: %s`, i, context(i, bodyRunes, resRunes))
-				t.FailNow()
+				t.Fatalf(`rune mismatch at index %d: %s`, i, context(i, bodyRunes, resRunes))
 			}
 		}
 	})
 
+	return r
+}
+
+// AssertJSON Marshals an interface{} to JSON and asserts that the Content-Type is set correctly and
+// the response body is a byte-for-byte match
+func (r *Response) AssertJSON(v interface{}) *Response {
+	oldT := r.t
+
+	r.t.Run("JSON", func(t *testing.T) {
+		// We temporarily swap out r.t so that these subtests (but not later Assertions called on this
+		// *Response struct) are nested together.
+		r.t = t
+
+		r.AssertHeader("Content-Type", "application/json")
+		body, err := json.Marshal(v)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		r.AssertBody(body)
+	})
+
+	r.t = oldT
 	return r
 }

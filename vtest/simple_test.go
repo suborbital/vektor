@@ -61,5 +61,7 @@ func TestVtest(t *testing.T) {
 
 	req, _ = http.NewRequest(http.MethodGet, "/simple", nil)
 
-	vt.Do(req, t).AssertStatus(200).AssertHeader("Content-Type", "application/json")
+	vt.Do(req, t).
+		AssertStatus(200).
+		AssertJSON(simpleStruct{"Bob", 30})
 }
