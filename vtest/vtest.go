@@ -34,7 +34,7 @@ This example covers basic vtest usage.
 		// vtest handles normal http.Request objects
 		req, _ := http.NewRequest(http.MethodGet, "/hello", nil)
 
-		vt.Run(req, t).
+		vt.Do(req, t).
 			AssertStatus(200).
 			AssertBodyString("hello")
 	}
@@ -61,8 +61,8 @@ func New(server *vk.Server) *VTest {
 	return s
 }
 
-// Run takes a normal http.Request and creates a simplified Response object. Use this to create your own tests.
-func (vt *VTest) Run(req *http.Request, t *testing.T) *Response {
+// Do takes a normal http.Request and creates a simplified Response object. Use this to create your own tests.
+func (vt *VTest) Do(req *http.Request, t *testing.T) *Response {
 	wr := newFakeResponseWriter()
 	vt.server.ServeHTTP(wr, req)
 

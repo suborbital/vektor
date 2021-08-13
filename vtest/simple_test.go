@@ -46,7 +46,7 @@ func TestVtest(t *testing.T) {
 
 	req, _ := http.NewRequest(http.MethodGet, "/hello", nil)
 
-	vt.Run(req, t).
+	vt.Do(req, t).
 		AssertStatus(200).
 		AssertBodyString("hello")
 
@@ -57,10 +57,10 @@ func TestVtest(t *testing.T) {
 		headers.Add("X-VK-TEST", "test")
 		headers.Add("X-SUBORBITAL", "rocket launch")
 
-		vt.Run(req, t).AssertHeaders(headers)
+		vt.Do(req, t).AssertHeaders(headers)
 	})
 
 	req, _ = http.NewRequest(http.MethodGet, "/simple", nil)
 
-	vt.Run(req, t).AssertStatus(200).AssertHeader("Content-Type", "application/json")
+	vt.Do(req, t).AssertStatus(200).AssertHeader("Content-Type", "application/json")
 }
