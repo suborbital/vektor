@@ -2,6 +2,7 @@ package vk
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
@@ -48,6 +49,12 @@ func New(opts ...OptionsModifier) *Server {
 
 // Start starts the server listening
 func (s *Server) Start() error {
+	if s.started.Load().(bool) {
+		err := errors.New("server already started")
+		s.options.Logger.Error(err)
+		return err
+	}
+
 	// lock the router modifiers (GET, POST etc.)
 	s.started.Store(true)
 
@@ -56,11 +63,6 @@ func (s *Server) Start() error {
 
 	if s.options.AppName != "" {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
-	}
-
-	// don't run the server if testmode is enabled
-	if s.options.TestModeSet() {
-		return nil
 	}
 
 	s.options.Logger.Info("serving on", s.server.Addr)
@@ -72,6 +74,27 @@ func (s *Server) Start() error {
 	}
 
 	return s.server.ListenAndServeTLS("", "")
+}
+
+// TestStart "starts" the server for automated testing with vtest
+func (s *Server) TestStart() error {
+	if s.started.Load().(bool) {
+		err := errors.New("server already started")
+		s.options.Logger.Error(err)
+		return err
+	}
+
+	// lock the router modifiers (GET, POST etc.)
+	s.started.Store(true)
+
+	// mount the root set of routes before starting
+	s.router.Finalize()
+
+	if s.options.AppName != "" {
+		s.options.Logger.Info("starting", s.options.AppName, "in Test Mode...")
+	}
+
+	return nil
 }
 
 // ServeHTTP serves HTTP requests using the internal router while allowing

@@ -62,13 +62,6 @@ func UseEnvPrefix(prefix string) OptionsModifier {
 	}
 }
 
-// UseTestMode sets whether the server starts in TestMode for automated testing.
-func UseTestMode(enable bool) OptionsModifier {
-	return func(o *Options) {
-		o.TestMode = enable
-	}
-}
-
 // UseInspector sets a function that will be allowed to inspect every HTTP request
 // before it reaches VK's internal router, but cannot modify said request or affect
 // the handling of said request in any way. Use at your own risk, as it may introduce

@@ -57,7 +57,7 @@ type VTest struct {
 // New creates a VTest object and starts the test server. It is used for generating standard Go tests.
 func New(server *vk.Server) *VTest {
 	s := &VTest{server: server}
-	s.server.Start()
+	s.server.TestStart()
 	return s
 }
 

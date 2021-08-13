@@ -35,7 +35,6 @@ func TestVtest(t *testing.T) {
 
 	server := vk.New(
 		vk.UseLogger(logger),
-		vk.UseTestMode(true),
 	)
 
 	server.GET("/hello", handleHello)
