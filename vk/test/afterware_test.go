@@ -20,7 +20,6 @@ func TestAfterware(t *testing.T) {
 
 	server := vk.New(
 		vk.UseLogger(logger),
-		vk.UseTestMode(true),
 	)
 
 	group := vk.Group("").After(func(r *http.Request, c *vk.Ctx) {
@@ -40,7 +39,7 @@ func TestAfterware(t *testing.T) {
 		t.Error(err)
 	}
 
-	vt.Run(r, t)
+	vt.Do(r, t)
 
 	if afterwareResult != p {
 		t.Errorf("want: %s, got: %s", p, afterwareResult)

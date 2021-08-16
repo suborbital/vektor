@@ -17,7 +17,6 @@ func TestInspector(t *testing.T) {
 
 	server := vk.New(
 		vk.UseLogger(logger),
-		vk.UseTestMode(true),
 		vk.UseInspector(func(r http.Request) {
 			inspectorResult = r.URL.Path
 		}),
@@ -37,7 +36,7 @@ func TestInspector(t *testing.T) {
 		t.Error(err)
 	}
 
-	vt.Run(r, t)
+	vt.Do(r, t)
 
 	if inspectorResult != p {
 		t.Errorf("want: %s, got: %s", p, inspectorResult)

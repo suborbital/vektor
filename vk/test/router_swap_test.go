@@ -15,7 +15,6 @@ func TestRouterSwap(t *testing.T) {
 
 	server := vk.New(
 		vk.UseLogger(logger),
-		vk.UseTestMode(true),
 	)
 
 	p := "/somepath"
@@ -33,7 +32,7 @@ func TestRouterSwap(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).
+		vt.Do(r, t).
 			AssertBodyString("before")
 	})
 
@@ -51,7 +50,7 @@ func TestRouterSwap(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).
+		vt.Do(r, t).
 			AssertBodyString("after")
 	})
 }

@@ -22,7 +22,6 @@ func init() {
 		vk.UseLogger(logger),
 		vk.UseAppName("vk tester"),
 		vk.UseEnvPrefix("APP"),
-		vk.UseTestMode(true),
 	)
 
 	test.AddRoutes(server)
@@ -38,7 +37,7 @@ func TestFound(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).
+		vt.Do(r, t).
 			AssertBodyString("gotcha").
 			AssertStatus(200)
 	})
@@ -50,7 +49,7 @@ func TestFound(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).
+		vt.Do(r, t).
 			AssertBodyString("gotcha").
 			AssertStatus(200)
 	})
@@ -70,7 +69,7 @@ func TestNotFound(t *testing.T) {
 		t.Error(err)
 	}
 
-	vt.Run(r, t).
+	vt.Do(r, t).
 		AssertBody(expect).
 		AssertStatus(404)
 }
@@ -92,7 +91,7 @@ func TestMiddleware(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).
+		vt.Do(r, t).
 			AssertBody(expect).
 			AssertStatus(200)
 	})
@@ -111,7 +110,7 @@ func TestMiddleware(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).
+		vt.Do(r, t).
 			AssertBody(expect).
 			AssertStatus(403)
 	})
@@ -123,7 +122,7 @@ func TestMiddleware(t *testing.T) {
 			t.Error(err)
 		}
 
-		vt.Run(r, t).AssertHeader("X-Vektor-Test", "foobar")
+		vt.Do(r, t).AssertHeader("X-Vektor-Test", "foobar")
 	})
 }
 
@@ -134,7 +133,7 @@ func TestHandleHTTP(t *testing.T) {
 		t.Error(err)
 	}
 
-	vt.Run(r, t).
+	vt.Do(r, t).
 		AssertBodyString("").
 		AssertStatus(204)
 }
@@ -146,7 +145,7 @@ func TestBadMistake(t *testing.T) {
 		t.Error(err)
 	}
 
-	vt.Run(r, t).
+	vt.Do(r, t).
 		AssertBodyString("Internal Server Error").
 		AssertStatus(500)
 }
