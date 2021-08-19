@@ -10,11 +10,14 @@ import (
 
 const wordcountCtxKey = "dev.suborbital.wordcount"
 
-func attachRoutes(server *vk.Server) {
+func setupServer() *vk.Server {
+	server := vk.New(vk.UseAppName("wordcount"), vk.UseHTTPPort(9090))
 	api := vk.Group("/api/v1").Before(createWordcountMiddleware)
 	api.POST("/wc", handlePost)
 
 	server.AddGroup(api)
+
+	return server
 }
 
 func createWordcountMiddleware(r *http.Request, ctx *vk.Ctx) error {
@@ -50,8 +53,7 @@ func handlePost(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 }
 
 func main() {
-	server := vk.New(vk.UseAppName("wordcount"), vk.UseHTTPPort(9090))
-	attachRoutes(server)
+	server := setupServer()
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)

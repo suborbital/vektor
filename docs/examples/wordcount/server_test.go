@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/suborbital/vektor/vk"
 	"github.com/suborbital/vektor/vtest"
 )
 
@@ -13,8 +12,7 @@ import (
 var vt *vtest.VTest
 
 func init() {
-	server := vk.New(vk.UseAppName("wordcount_testing"))
-	attachRoutes(server)
+	server := setupServer()
 
 	vt = vtest.New(server)
 }

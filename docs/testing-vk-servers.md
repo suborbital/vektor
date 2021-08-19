@@ -1,6 +1,6 @@
 # Testing Vektor Servers ✅
 
-`vtest` is a powerful package for testing your Vektor servers without running an HTTP server bound to a port. Let's explore a simple API server for doing word counting and add some tests to it.
+`vtest` is a powerful package for testing your Vektor servers without running an HTTP server bound to a port. `vtest` uses the standard Go `testing` package, which lets you integrate server route testing into your test suite. Let's explore a simple wordcount API server and add some tests to it.
 
 All of the code on this page is runnable and can be found on [GitHub](https://github.com/suborbital/vektor/tree/main/docs/examples/wordcount).
 
@@ -122,7 +122,7 @@ func TestWordcount(t *testing.T) {
 
 	vt := vtest.New(server)
 
-    body := strings.NewReader("There's a starman waiting in the sky\nHe'd like to come and meet us")
+	body := strings.NewReader("There's a starman waiting in the sky\nHe'd like to come and meet us")
 
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/wc", body)
 

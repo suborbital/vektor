@@ -11,9 +11,7 @@ func (w Wordcount) Words() int {
 }
 
 func (w Wordcount) Lines() int {
-	return len(strings.FieldsFunc(string(w), func(r rune) bool {
-		return r == '\n'
-	}))
+	return len(strings.Split(string(w), "\n"))
 }
 
 func (w Wordcount) Characters() int {
