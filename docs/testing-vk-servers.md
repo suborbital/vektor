@@ -17,9 +17,7 @@ func (w Wordcount) Words() int {
 }
 
 func (w Wordcount) Lines() int {
-	return len(strings.FieldsFunc(string(w), func(r rune) bool {
-		return r == '\n'
-	}))
+	return len(strings.Split(string(w), "\n"))
 }
 
 func (w Wordcount) Characters() int {
@@ -28,17 +26,20 @@ func (w Wordcount) Characters() int {
 }
 ```
 
-There are a few interesting things to point out in our server that are relevant to testing. The `attachRoutes()` function is reused later to setup our testing server in the same way it is used in `main()`. This is useful if you have a more complex routing setup.
+There are a few interesting things to point out in our server that are relevant to testing. The `setupServer()` function is reused later to setup our testing server in the same way it is used in `main()`. This is useful if you have a more complex routing setup.
 
 The other thing to note here is the `WCResponse` struct. We can reuse it directly to make writing tests a breeze.
 
 ```go
 // server.go
-func attachRoutes(server *vk.Server) {
+func setupServer() *vk.Server {
+	server := vk.New(vk.UseAppName("wordcount"), vk.UseHTTPPort(9090))
 	api := vk.Group("/api/v1").Before(createWordcountMiddleware)
 	api.POST("/wc", handlePost)
 
 	server.AddGroup(api)
+
+	return server
 }
 
 func createWordcountMiddleware(r *http.Request, ctx *vk.Ctx) error {
@@ -74,8 +75,7 @@ func handlePost(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 }
 
 func main() {
-	server := vk.New(vk.UseAppName("wordcount"), vk.UseHTTPPort(9090))
-	attachRoutes(server)
+	server := setupServer()
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
@@ -117,8 +117,7 @@ Tests written with `vtest` use the usual Go testing idioms. If you're not famili
 Here is a complete test function for a Vektor server. Let's break it down.
 ```go
 func TestWordcount(t *testing.T) {
-	server := vk.New(vk.UseAppName("wordcount_testing"))
-	attachRoutes(server)
+	server := setupServer()
 
 	vt := vtest.New(server)
 
@@ -138,8 +137,7 @@ func TestWordcount(t *testing.T) {
 
 The only thing different from creating a regular Vektor server is that we construct a `vtest.VTest` struct with `vtest.New()`.
 ```go
-server := vk.New(vk.UseAppName("wordcount_testing"))
-attachRoutes(server)
+server := setupServer()
 vt := vtest.New(server)
 ```
 
