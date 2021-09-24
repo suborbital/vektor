@@ -1,4 +1,4 @@
-![logo_transparent](https://user-images.githubusercontent.com/5942370/88549074-df5f8780-cfed-11ea-812d-36f184d6a046.png)
+![SOS_Vektor-Long-FullColour](https://user-images.githubusercontent.com/5942370/134704252-f70b44ce-64d8-41e3-9289-69b4024f88f8.png)
 
 ## Intro
 `Vektor` enables development of modern web services in Go. Vektor is designed to simplify the development of web APIs by eliminating boilerplate, using secure defaults, providing plug-in points, and offering common pieces needed for web apps. Vektor is fairly opinionated, but aims to provide flexibility in the right places.
@@ -12,7 +12,7 @@ Vektor consists of components that can be used to help you build your web apps a
 
 **Vektor API (beta)**
 
-The `vk` component is central to Vektor. It helps to quickly build production-ready API services with Go. It includes secure-by-default settings such as built-in LetsEncrypt, lots of customizability, and helpers galore. It will soon integrate with Suborbital's Hive job scheduler to allow performing more complex and performance-oriented work. `vk` enables minimal-boilerplate servers with an intuitive wrapper around the most performant HTTP router, [httprouter](https://github.com/julienschmidt/httprouter).
+The `vk` component is central to Vektor. It helps to quickly build production-ready API services with Go. It includes secure-by-default settings such as built-in LetsEncrypt, lots of customizability, and helpers galore. `vk` enables minimal-boilerplate servers with an intuitive wrapper around the most performant HTTP router, [httprouter](https://github.com/julienschmidt/httprouter).
 
 **Vektor Logger (beta)**
 
@@ -67,4 +67,4 @@ That's just the beginning! Vektor includes powerful features like composable mid
 
 ## ✨ To learn about everything Vektor can do, visit the [guide](https://vektor.suborbital.dev) ✨
 
-Copyright Suborbital contributors 2021
+Copyright Suborbital contributors 2021.
