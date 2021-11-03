@@ -37,11 +37,11 @@ The logger will automatically filter out anything higher than the configured lev
 ```golang
 // LogLevelTrace and others represent log levels
 const (
-	LogLevelTrace = "trace" // 5
-	LogLevelDebug = "debug" // 4
-	LogLevelInfo  = "info"  // 3
-	LogLevelWarn  = "warn"  // 2
-	LogLevelError = "error" // 1
+	LogLevelTrace = "trace" // 4
+	LogLevelDebug = "debug" // 3
+	LogLevelInfo  = "info"  // 2
+	LogLevelWarn  = "warn"  // 1
+	LogLevelError = "error" // 0
 )
 ```
 

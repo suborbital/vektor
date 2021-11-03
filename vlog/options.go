@@ -20,11 +20,11 @@ const (
 )
 
 var levelStringMap = map[string]int{
-	LogLevelTrace: 5,
-	LogLevelDebug: 4,
-	LogLevelInfo:  3,
-	LogLevelWarn:  2,
-	LogLevelError: 1,
+	LogLevelTrace: 4,
+	LogLevelDebug: 3,
+	LogLevelInfo:  2,
+	LogLevelWarn:  1,
+	LogLevelError: 0,
 }
 
 // Options represents the options for a VLogger
@@ -145,5 +145,5 @@ func logLevelValFromString(level string) int {
 		return level
 	}
 
-	return 3
+	return 2
 }

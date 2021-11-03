@@ -80,47 +80,47 @@ func (v *Logger) CreateScoped(scope interface{}) *Logger {
 func (v *Logger) ErrorString(msgs ...interface{}) {
 	msg := v.producer.ErrorString(msgs...)
 
-	v.log(msg, v.scope, 1)
+	v.log(msg, v.scope, 0)
 }
 
 // Error logs an error as an error
 func (v *Logger) Error(err error) {
 	msg := v.producer.Error(err)
 
-	v.log(msg, v.scope, 1)
+	v.log(msg, v.scope, 0)
 }
 
 // Warn logs a string as an warning
 func (v *Logger) Warn(msgs ...interface{}) {
 	msg := v.producer.Warn(msgs...)
 
-	v.log(msg, v.scope, 2)
+	v.log(msg, v.scope, 1)
 }
 
 // Info logs a string as an info message
 func (v *Logger) Info(msgs ...interface{}) {
 	msg := v.producer.Info(msgs...)
 
-	v.log(msg, v.scope, 3)
+	v.log(msg, v.scope, 2)
 }
 
 // Debug logs a string as debug output
 func (v *Logger) Debug(msgs ...interface{}) {
 	msg := v.producer.Debug(msgs...)
 
-	v.log(msg, v.scope, 4)
+	v.log(msg, v.scope, 3)
 }
 
 // Trace logs a function name and returns a function to be deferred, logging the completion of a function
 func (v *Logger) Trace(fnName string) func() {
 	msg, traceFunc := v.producer.Trace(fnName)
 
-	v.log(msg, v.scope, 5)
+	v.log(msg, v.scope, 4)
 
 	return func() {
 		msg := traceFunc()
 
-		v.log(msg, v.scope, 5)
+		v.log(msg, v.scope, 4)
 	}
 }
 
