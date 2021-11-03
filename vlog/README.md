@@ -33,7 +33,7 @@ log.Info("user", user.Email, "completed signin")
 Will print `(I) user info@example.com completed signup`. The `(I)` indicates the log level (info). How the logger processes the passed in objects is determined by the producer, which is discussed below.
 
 ## Log levels
-The logger will automatically filter out anything higher than the configured level. For example, if the logger is configured for `LogLevelError`, then the higher levels such as Info, Debug, and Trace will not be logged. The available log level are as follows:
+The logger will automatically filter out anything higher than the configured level. For example, if the logger is configured for `LogLevelError`, then the higher levels such as Info, Debug, and Trace will not be logged. `LogLevelNull` will suppress all logs. The available log levels are as follows:
 ```golang
 // LogLevelTrace and others represent log levels
 const (
@@ -42,6 +42,7 @@ const (
 	LogLevelInfo  = "info"  // 3
 	LogLevelWarn  = "warn"  // 2
 	LogLevelError = "error" // 1
+	LogLevelNull  = "null"  // 0
 )
 ```
 

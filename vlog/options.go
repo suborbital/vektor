@@ -17,6 +17,7 @@ const (
 	LogLevelInfo  = "info"  // 3
 	LogLevelWarn  = "warn"  // 2
 	LogLevelError = "error" // 1
+	LogLevelNull  = "null"  // 0
 )
 
 var levelStringMap = map[string]int{
@@ -25,6 +26,7 @@ var levelStringMap = map[string]int{
 	LogLevelInfo:  3,
 	LogLevelWarn:  2,
 	LogLevelError: 1,
+	LogLevelNull:  0,
 }
 
 // Options represents the options for a VLogger
