@@ -31,13 +31,13 @@ var levelStringMap = map[string]int{
 
 // Options represents the options for a VLogger
 type Options struct {
-	Level       int         `env:"-"`
-	LevelString string      `env:"_LOG_LEVEL"`
-	Filepath    string      `env:"_LOG_FILE"`
-	LogPrefix   string      `env:"_LOG_PREFIX"`
-	EnvPrefix   string      `env:"-"`
-	AppMeta     interface{} `env:"-"`
-	PreLogHook  LogHookFunc `env:"-"`
+	Level       int
+	LevelString string `env:"_LOG_LEVEL"`
+	Filepath    string `env:"_LOG_FILE"`
+	LogPrefix   string `env:"_LOG_PREFIX"`
+	EnvPrefix   string
+	AppMeta     interface{}
+	PreLogHook  LogHookFunc
 }
 
 type LogHookFunc func([]byte)
