@@ -140,8 +140,7 @@ func (v *Logger) log(message string, scope interface{}, level int) {
 		defer v.lock.Unlock()
 
 		// throwing away the error here since there's nothing much we can do
-		os.Stdout.Write([]byte(message))
-		os.Stdout.Write([]byte("\n"))
+		os.Stdout.Write(append([]byte(message), []byte("\n")...))
 	}
 
 	structured := structuredLog{
@@ -161,13 +160,12 @@ func (v *Logger) log(message string, scope interface{}, level int) {
 		v.opts.PreLogHook(structuredJSON)
 	}
 
-	_, err = v.output.Write(structuredJSON)
+	structuredOut := append(structuredJSON, []byte("\n")...)
+
+	_, err = v.output.Write(structuredOut)
 	if err != nil {
 		os.Stderr.Write([]byte("[vlog] failed to write to configured output: " + err.Error() + "\n"))
-	} else {
-		v.output.Write([]byte("\n"))
 	}
-
 }
 
 func outputForOptions(opts *Options) (io.Writer, error) {
