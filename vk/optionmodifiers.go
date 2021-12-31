@@ -71,3 +71,10 @@ func UseInspector(isp func(http.Request)) OptionsModifier {
 		o.PreRouterInspector = isp
 	}
 }
+
+// UseQuietRoutes accepts a list of routes to be 'quiet', i.e. no pre- and post-handler logging
+func UseQuietRoutes(routes ...string) OptionsModifier {
+	return func(o *Options) {
+		o.QuietRoutes = routes
+	}
+}

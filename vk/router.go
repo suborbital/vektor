@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/suborbital/vektor/vlog"
@@ -21,9 +22,11 @@ type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
 
 // Router handles the responses on behalf of the server
 type Router struct {
-	*RouteGroup                     // the "root" RouteGroup that is mounted at server start
-	hrouter      *httprouter.Router // the internal 'actual' router
-	finalizeOnce sync.Once          // ensure that the root only gets mounted once
+	*RouteGroup                    // the "root" RouteGroup that is mounted at server start
+	hrouter     *httprouter.Router // the internal 'actual' router
+
+	quietRoutes  map[string]bool
+	finalizeOnce sync.Once // ensure that the root only gets mounted once
 
 	log *vlog.Logger
 }
@@ -34,12 +37,10 @@ type defaultScope struct {
 
 // NewRouter creates a new Router
 func NewRouter(logger *vlog.Logger) *Router {
-	// add the logger middleware
-	middleware := []Middleware{loggerMiddleware()}
-
 	r := &Router{
-		RouteGroup:   Group("").Before(middleware...),
+		RouteGroup:   Group(""),
 		hrouter:      httprouter.New(),
+		quietRoutes:  map[string]bool{},
 		finalizeOnce: sync.Once{},
 		log:          logger,
 	}
@@ -80,11 +81,11 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (rt *Router) mountGroup(group *RouteGroup) {
 	for _, r := range group.routeHandlers() {
 		rt.log.Debug("mounting route", r.Method, r.Path)
-		rt.hrouter.Handle(r.Method, r.Path, rt.handleWrap(r.Handler))
+		rt.hrouter.Handle(r.Method, r.Path, rt.handlerWrap(r.Handler))
 	}
 }
 
-// handleWrap returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
+// handlerWrap returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
 //
 // inner returns a body and an error;
 // the body can can be:
@@ -96,7 +97,7 @@ func (rt *Router) mountGroup(group *RouteGroup) {
 // - a vk.Error type (status and message are written to w)
 // - any other error object (status 500 and error.Error() are written to w)
 //
-func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
+func (rt *Router) handlerWrap(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		var status int
 		var body []byte
@@ -107,6 +108,8 @@ func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
 		// in case a scope was set on it)
 		ctx := NewCtx(rt.log, params, w.Header())
 		ctx.UseScope(defaultScope{ctx.RequestID()})
+
+		logDone := rt.logRequest(r, ctx)
 
 		resp, err := inner(r, ctx)
 		if err != nil {
@@ -132,7 +135,7 @@ func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
 		w.WriteHeader(status)
 		w.Write(body)
 
-		ctx.Log.Info(r.Method, r.URL.String(), fmt.Sprintf("completed (%d: %s)", status, http.StatusText(status)))
+		logDone(status)
 	}
 }
 
@@ -141,4 +144,30 @@ func (rt *Router) handleWrap(inner HandlerFunc) httprouter.Handle {
 func (rt *Router) canHandle(method, path string) bool {
 	handler, _, _ := rt.hrouter.Lookup(method, path)
 	return handler != nil
+}
+
+// useQuietRoutes sets the 'quiet' routes for the router's logging
+func (rt *Router) useQuietRoutes(routes []string) {
+	for _, r := range routes {
+		rt.quietRoutes[r] = true
+	}
+}
+
+// logRequest logs a request and returns a function
+// that logs the completion of the request handler
+func (rt *Router) logRequest(r *http.Request, ctx *Ctx) func(int) {
+	start := time.Now()
+
+	logFn := ctx.Log.Info
+	if _, beQuiet := rt.quietRoutes[r.URL.Path]; beQuiet {
+		logFn = ctx.Log.Debug
+	}
+
+	logFn(r.Method, r.URL.String())
+
+	logDone := func(status int) {
+		logFn(r.Method, r.URL.String(), fmt.Sprintf("completed (%d: %s) in %dms", status, http.StatusText(status), time.Since(start).Milliseconds()))
+	}
+
+	return logDone
 }
