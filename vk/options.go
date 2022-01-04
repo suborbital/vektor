@@ -12,13 +12,14 @@ import (
 
 // Options are the available options for Server
 type Options struct {
-	AppName   string `env:"_APP_NAME"`
-	Domain    string `env:"_DOMAIN"`
-	HTTPPort  int    `env:"_HTTP_PORT"`
-	TLSPort   int    `env:"_TLS_PORT"`
-	TLSConfig *tls.Config
-	EnvPrefix string
-	Logger    *vlog.Logger
+	AppName     string `env:"_APP_NAME"`
+	Domain      string `env:"_DOMAIN"`
+	HTTPPort    int    `env:"_HTTP_PORT"`
+	TLSPort     int    `env:"_TLS_PORT"`
+	TLSConfig   *tls.Config
+	EnvPrefix   string
+	QuietRoutes []string
+	Logger      *vlog.Logger
 
 	PreRouterInspector func(http.Request)
 }

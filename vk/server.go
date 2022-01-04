@@ -28,6 +28,7 @@ func New(opts ...OptionsModifier) *Server {
 	options := newOptsWithModifiers(opts...)
 
 	router := NewRouter(options.Logger)
+	router.useQuietRoutes(options.QuietRoutes)
 
 	s := &Server{
 		router:  router,
@@ -120,6 +121,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // continuing to serve requests in the background
 func (s *Server) SwapRouter(router *Router) {
 	router.Finalize()
+	router.useQuietRoutes(s.options.QuietRoutes)
 
 	// lock after Finalizing the router so
 	// the lock is released as quickly as possible

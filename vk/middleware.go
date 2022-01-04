@@ -47,14 +47,6 @@ func enableCors(ctx *Ctx, domain string) {
 	}
 }
 
-func loggerMiddleware() Middleware {
-	return func(r *http.Request, ctx *Ctx) error {
-		ctx.Log.Info(r.Method, r.URL.String())
-
-		return nil
-	}
-}
-
 // generate a HandlerFunc that passes the request through a set of Middleware first and Afterware after
 func augmentHandler(inner HandlerFunc, middleware []Middleware, afterware []Afterware) HandlerFunc {
 	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
