@@ -1,6 +1,7 @@
 package vk
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -75,6 +76,11 @@ func (s *Server) Start() error {
 	}
 
 	return s.server.ListenAndServeTLS("", "")
+}
+
+// Stop shuts down the server and returns any associated errors
+func (s *Server) Stop() error {
+	return s.server.Shutdown(context.Background())
 }
 
 // TestStart "starts" the server for automated testing with vtest
