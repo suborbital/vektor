@@ -78,3 +78,10 @@ func UseQuietRoutes(routes ...string) OptionsModifier {
 		o.QuietRoutes = routes
 	}
 }
+
+// UseRouterWrapper takes in a RouterWrapper function that takes in an http.Handler, and returns another http.Handler.
+func UseRouterWrapper(wrapper RouterWrapper) OptionsModifier {
+	return func(o *Options) {
+		o.RouterWrapper = wrapper
+	}
+}

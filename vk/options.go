@@ -10,22 +10,36 @@ import (
 	"github.com/suborbital/vektor/vlog"
 )
 
+// RouterWrapper provides a function signature to implement wrappers for routing. A good use case is to pass in an
+// opentelemetry mux wrapper.
+type RouterWrapper func(handler http.Handler) http.Handler
+
 // Options are the available options for Server
 type Options struct {
-	AppName     string `env:"_APP_NAME"`
-	Domain      string `env:"_DOMAIN"`
-	HTTPPort    int    `env:"_HTTP_PORT"`
-	TLSPort     int    `env:"_TLS_PORT"`
-	TLSConfig   *tls.Config
-	EnvPrefix   string
-	QuietRoutes []string
-	Logger      *vlog.Logger
+	AppName       string `env:"_APP_NAME"`
+	Domain        string `env:"_DOMAIN"`
+	HTTPPort      int    `env:"_HTTP_PORT"`
+	TLSPort       int    `env:"_TLS_PORT"`
+	TLSConfig     *tls.Config
+	EnvPrefix     string
+	QuietRoutes   []string
+	Logger        *vlog.Logger
+	RouterWrapper RouterWrapper
 
 	PreRouterInspector func(http.Request)
 }
 
+// defaultRouterWrapper is a default pass through option for a wrapper. This does not wrap the handler in anything.
+var defaultRouterWrapper = func(innerHandler http.Handler) http.Handler {
+	return innerHandler
+}
+
 func newOptsWithModifiers(mods ...OptionsModifier) *Options {
 	options := &Options{}
+
+	// set the default route wrapper to the noop pass through one.
+	options.RouterWrapper = defaultRouterWrapper
+
 	// loop through the provided options and apply the
 	// modifier function to the options object
 	for _, mod := range mods {
