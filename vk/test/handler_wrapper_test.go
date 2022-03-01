@@ -7,10 +7,9 @@ import (
 	"github.com/suborbital/vektor/vlog"
 	"github.com/suborbital/vektor/vtest"
 	"net/http"
-	"testing"
 )
 
-func TestWrapper(t *testing.T) {
+func (vts *VektorSuite) TestWrapper() {
 	// suppress logging
 	logger := vlog.Default(vlog.Level(vlog.LogLevelError))
 
@@ -32,15 +31,15 @@ func TestWrapper(t *testing.T) {
 		return vk.R(200, "before"), nil
 	})
 
-	vt = vtest.New(server)
+	vts.vt = vtest.New(server)
 
 	r, err := http.NewRequest(http.MethodGet, p, nil)
 
 	if err != nil {
-		t.Error(err)
+		vts.Error(err)
 	}
 
-	vt.Do(r, t)
+	vts.vt.Do(r, vts.T())
 
-	rw.AssertExpectations(t)
+	rw.AssertExpectations(vts.T())
 }
