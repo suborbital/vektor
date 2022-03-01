@@ -10,23 +10,6 @@ import (
 	"testing"
 )
 
-type testHandler struct {
-	wrappedHandler http.Handler
-	tester         test.RouterWrapperTester
-}
-
-func (th testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	th.tester.CalledIt()
-	th.wrappedHandler.ServeHTTP(w, r)
-}
-
-func NewWrappedHandler(inner http.Handler, tester test.RouterWrapperTester) testHandler {
-	return testHandler{
-		wrappedHandler: inner,
-		tester:         tester,
-	}
-}
-
 func TestWrapper(t *testing.T) {
 	// suppress logging
 	logger := vlog.Default(vlog.Level(vlog.LogLevelError))
@@ -39,7 +22,7 @@ func TestWrapper(t *testing.T) {
 	server := vk.New(
 		vk.UseLogger(logger),
 		vk.UseRouterWrapper(func(h http.Handler) http.Handler {
-			return NewWrappedHandler(h, rw)
+			return test.NewWrappedHandler(h, rw)
 		}),
 	)
 
