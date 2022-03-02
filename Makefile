@@ -11,4 +11,7 @@ test:
 deps:
 	go get -u -d ./...
 
+mocks:
+	mockery --name=RouterWrapperTester --dir=./vk/test --output=./vk/test/mocks
+
 .PHONY: vk/tester vk/tester/run test deps

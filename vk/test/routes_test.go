@@ -2,19 +2,28 @@ package test_test
 
 import (
 	"encoding/json"
-	"net/http"
-	"testing"
-
+	"github.com/stretchr/testify/suite"
 	"github.com/suborbital/vektor/vk"
 	"github.com/suborbital/vektor/vk/test"
 	"github.com/suborbital/vektor/vlog"
 	"github.com/suborbital/vektor/vtest"
+	"net/http"
+	"testing"
 )
 
-// reuse the same TestMode server for these tests
-var vt *vtest.VTest
+// In order for 'go test' to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run
+func TestVektorSuite(t *testing.T) {
+	suite.Run(t, new(VektorSuite))
+}
 
-func init() {
+type VektorSuite struct {
+	suite.Suite
+	vt *vtest.VTest
+}
+
+// Make sure that vt is reset to a base state before each test.
+func (vts *VektorSuite) SetupTest() {
 	// suppress logging
 	logger := vlog.Default(vlog.Level(vlog.LogLevelWarn), vlog.ToFile("/dev/null"))
 
@@ -26,126 +35,126 @@ func init() {
 
 	test.AddRoutes(server)
 
-	vt = vtest.New(server)
+	vts.vt = vtest.New(server)
 }
 
-func TestFound(t *testing.T) {
-	t.Run("GET", func(t *testing.T) {
+func (vts *VektorSuite) TestFound() {
+	vts.Run("GET", func() {
 		r, err := http.NewRequest(http.MethodGet, "/f", nil)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
-		vt.Do(r, t).
+		vts.vt.Do(r, vts.T()).
 			AssertBodyString("gotcha").
 			AssertStatus(200)
 	})
 
-	t.Run("POST", func(t *testing.T) {
+	vts.Run("POST", func() {
 		r, err := http.NewRequest(http.MethodPost, "/f", nil)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
-		vt.Do(r, t).
+		vts.vt.Do(r, vts.T()).
 			AssertBodyString("gotcha").
 			AssertStatus(200)
 	})
 }
 
-func TestNotFound(t *testing.T) {
+func (vts *VektorSuite) TestNotFound() {
 	r, err := http.NewRequest(http.MethodGet, "/nf", nil)
 
 	if err != nil {
-		t.Error(err)
+		vts.Error(err)
 	}
 
 	res := vk.E(http.StatusNotFound, "Not Found")
 	expect, err := json.Marshal(res)
 
 	if err != nil {
-		t.Error(err)
+		vts.Error(err)
 	}
 
-	vt.Do(r, t).
+	vts.vt.Do(r, vts.T()).
 		AssertBody(expect).
 		AssertStatus(404)
 }
 
 // also tests groups!
-func TestMiddleware(t *testing.T) {
-	t.Run("allow", func(t *testing.T) {
+func (vts *VektorSuite) TestMiddleware() {
+	vts.Run("allow", func() {
 		me := struct{ Me string }{Me: "mario"}
 
 		r, err := http.NewRequest(http.MethodGet, "/api/v1/me", nil)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
 		expect, err := json.Marshal(me)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
-		vt.Do(r, t).
+		vts.vt.Do(r, vts.T()).
 			AssertBody(expect).
 			AssertStatus(200)
 	})
 
-	t.Run("deny", func(t *testing.T) {
+	vts.Run("deny", func() {
 		r, err := http.NewRequest(http.MethodGet, "/api/v1/me/hack", nil)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
 		deny := vk.E(403, "begone, hacker")
 		expect, err := json.Marshal(deny)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
-		vt.Do(r, t).
+		vts.vt.Do(r, vts.T()).
 			AssertBody(expect).
 			AssertStatus(403)
 	})
 
-	t.Run("header", func(t *testing.T) {
+	vts.Run("header", func() {
 		r, err := http.NewRequest(http.MethodGet, "/api/v1/me", nil)
 
 		if err != nil {
-			t.Error(err)
+			vts.Error(err)
 		}
 
-		vt.Do(r, t).AssertHeader("X-Vektor-Test", "foobar")
+		vts.vt.Do(r, vts.T()).AssertHeader("X-Vektor-Test", "foobar")
 	})
 }
 
-func TestHandleHTTP(t *testing.T) {
+func (vts *VektorSuite) TestHandleHTTP() {
 	r, err := http.NewRequest(http.MethodGet, "/http", nil)
 
 	if err != nil {
-		t.Error(err)
+		vts.Error(err)
 	}
 
-	vt.Do(r, t).
+	vts.vt.Do(r, vts.T()).
 		AssertBodyString("").
 		AssertStatus(204)
 }
 
-func TestBadMistake(t *testing.T) {
+func (vts *VektorSuite) TestBadMistake() {
 	r, err := http.NewRequest(http.MethodGet, "/api/v2/mistake", nil)
 
 	if err != nil {
-		t.Error(err)
+		vts.Error(err)
 	}
 
-	vt.Do(r, t).
+	vts.vt.Do(r, vts.T()).
 		AssertBodyString("Internal Server Error").
 		AssertStatus(500)
 }

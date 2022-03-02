@@ -16,9 +16,10 @@ const defaultEnvPrefix = "VK"
 
 // Server represents a vektor API server
 type Server struct {
-	router  *Router
-	lock    sync.RWMutex
-	started atomic.Value
+	router         http.Handler
+	internalRouter *Router
+	lock           sync.RWMutex
+	started        atomic.Value
 
 	server  *http.Server
 	options *Options
@@ -28,14 +29,14 @@ type Server struct {
 func New(opts ...OptionsModifier) *Server {
 	options := newOptsWithModifiers(opts...)
 
-	router := NewRouter(options.Logger)
-	router.useQuietRoutes(options.QuietRoutes)
+	internalRouter := NewRouter(options.Logger)
+	internalRouter.useQuietRoutes(options.QuietRoutes)
 
 	s := &Server{
-		router:  router,
-		lock:    sync.RWMutex{},
-		started: atomic.Value{},
-		options: options,
+		internalRouter: internalRouter,
+		lock:           sync.RWMutex{},
+		started:        atomic.Value{},
+		options:        options,
 	}
 
 	s.started.Store(false)
@@ -61,7 +62,9 @@ func (s *Server) Start() error {
 	s.started.Store(true)
 
 	// mount the root set of routes before starting
-	s.router.Finalize()
+	s.internalRouter.Finalize()
+
+	s.router = s.options.RouterWrapper(s.internalRouter)
 
 	if s.options.AppName != "" {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
@@ -100,11 +103,13 @@ func (s *Server) TestStart() error {
 	s.started.Store(true)
 
 	// mount the root set of routes before starting
-	s.router.Finalize()
+	s.internalRouter.Finalize()
 
 	if s.options.AppName != "" {
 		s.options.Logger.Info("starting", s.options.AppName, "in Test Mode...")
 	}
+
+	s.router = s.options.RouterWrapper(s.internalRouter)
 
 	return nil
 }
@@ -139,7 +144,8 @@ func (s *Server) SwapRouter(router *Router) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	s.router = router
+	s.internalRouter = router
+	s.router = s.options.RouterWrapper(s.internalRouter)
 }
 
 // CanHandle returns true if the server can handle a given method and path
@@ -147,7 +153,7 @@ func (s *Server) CanHandle(method, path string) bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	return s.router.canHandle(method, path)
+	return s.internalRouter.canHandle(method, path)
 }
 
 // GET is a shortcut for router.Handle(http.MethodGet, path, handle)
@@ -156,7 +162,7 @@ func (s *Server) GET(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.GET(path, handler)
+	s.internalRouter.GET(path, handler)
 }
 
 // HEAD is a shortcut for router.Handle(http.MethodHead, path, handle)
@@ -165,7 +171,7 @@ func (s *Server) HEAD(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.HEAD(path, handler)
+	s.internalRouter.HEAD(path, handler)
 }
 
 // OPTIONS is a shortcut for router.Handle(http.MethodOptions, path, handle)
@@ -174,7 +180,7 @@ func (s *Server) OPTIONS(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.OPTIONS(path, handler)
+	s.internalRouter.OPTIONS(path, handler)
 }
 
 // POST is a shortcut for router.Handle(http.MethodPost, path, handle)
@@ -183,7 +189,7 @@ func (s *Server) POST(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.POST(path, handler)
+	s.internalRouter.POST(path, handler)
 }
 
 // PUT is a shortcut for router.Handle(http.MethodPut, path, handle)
@@ -192,7 +198,7 @@ func (s *Server) PUT(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.PUT(path, handler)
+	s.internalRouter.PUT(path, handler)
 }
 
 // PATCH is a shortcut for router.Handle(http.MethodPatch, path, handle)
@@ -201,7 +207,7 @@ func (s *Server) PATCH(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.PATCH(path, handler)
+	s.internalRouter.PATCH(path, handler)
 }
 
 // DELETE is a shortcut for router.Handle(http.MethodDelete, path, handle)
@@ -210,7 +216,7 @@ func (s *Server) DELETE(path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.DELETE(path, handler)
+	s.internalRouter.DELETE(path, handler)
 }
 
 // Handle adds a route to be handled
@@ -219,7 +225,7 @@ func (s *Server) Handle(method, path string, handler HandlerFunc) {
 		return
 	}
 
-	s.router.Handle(method, path, handler)
+	s.internalRouter.Handle(method, path, handler)
 }
 
 // AddGroup adds a RouteGroup to be handled
@@ -228,7 +234,7 @@ func (s *Server) AddGroup(group *RouteGroup) {
 		return
 	}
 
-	s.router.AddGroup(group)
+	s.internalRouter.AddGroup(group)
 }
 
 // HandleHTTP allows vk to handle a standard http.HandlerFunc
@@ -237,7 +243,7 @@ func (s *Server) HandleHTTP(method, path string, handler http.HandlerFunc) {
 		return
 	}
 
-	s.router.HandleHTTP(method, path, handler)
+	s.internalRouter.HandleHTTP(method, path, handler)
 }
 
 func createGoServer(options *Options, handler http.Handler) *http.Server {
