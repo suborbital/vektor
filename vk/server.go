@@ -33,7 +33,6 @@ func New(opts ...OptionsModifier) *Server {
 	internalRouter.useQuietRoutes(options.QuietRoutes)
 
 	s := &Server{
-		router:         options.RouterWrapper(internalRouter),
 		internalRouter: internalRouter,
 		lock:           sync.RWMutex{},
 		started:        atomic.Value{},
