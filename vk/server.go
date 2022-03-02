@@ -29,12 +29,12 @@ type Server struct {
 func New(opts ...OptionsModifier) *Server {
 	options := newOptsWithModifiers(opts...)
 
-	router := NewRouter(options.Logger)
-	router.useQuietRoutes(options.QuietRoutes)
+	internalRouter := NewRouter(options.Logger)
+	internalRouter.useQuietRoutes(options.QuietRoutes)
 
 	s := &Server{
-		router:         options.RouterWrapper(router),
-		internalRouter: router,
+		router:         options.RouterWrapper(internalRouter),
+		internalRouter: internalRouter,
 		lock:           sync.RWMutex{},
 		started:        atomic.Value{},
 		options:        options,
