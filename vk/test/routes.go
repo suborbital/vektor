@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	"github.com/suborbital/vektor/vk"
 )
 
@@ -12,6 +13,7 @@ func AddRoutes(server *vk.Server) {
 	server.GET("/f", HandleFound)
 	server.POST("/f", HandleFound)
 	server.GET("/nf", HandleNotFound)
+	server.WebSocket("/sock", HandleSock)
 
 	v1 := vk.Group("/v1").Before(denyMiddleware, headerMiddleware)
 	v1.GET("/me", HandleMe)
@@ -57,6 +59,11 @@ func HandleYou(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 // HandleBadMistake handles a bad mistake
 func HandleBadMistake(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return nil, errors.New("this is a bad idea")
+}
+
+// HandleSock hands Sock requests
+func HandleSock(r *http.Request, ctx *vk.Ctx, conn *websocket.Conn) error {
+	return nil
 }
 
 // HandleHTTP tests HTTP handlers

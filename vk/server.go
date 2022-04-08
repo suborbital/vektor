@@ -219,6 +219,15 @@ func (s *Server) DELETE(path string, handler HandlerFunc) {
 	s.internalRouter.DELETE(path, handler)
 }
 
+// WebSocket registers a WebSocket handler
+func (s *Server) WebSocket(path string, handler WebSocketHandlerFunc) {
+	if s.started.Load().(bool) {
+		return
+	}
+
+	s.internalRouter.WebSocket(path, handler)
+}
+
 // Handle adds a route to be handled
 func (s *Server) Handle(method, path string, handler HandlerFunc) {
 	if s.started.Load().(bool) {

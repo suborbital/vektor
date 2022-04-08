@@ -2,13 +2,14 @@ package test_test
 
 import (
 	"encoding/json"
+	"net/http"
+	"testing"
+
 	"github.com/stretchr/testify/suite"
 	"github.com/suborbital/vektor/vk"
 	"github.com/suborbital/vektor/vk/test"
 	"github.com/suborbital/vektor/vlog"
 	"github.com/suborbital/vektor/vtest"
-	"net/http"
-	"testing"
 )
 
 // In order for 'go test' to run this suite, we need to create
@@ -157,4 +158,20 @@ func (vts *VektorSuite) TestBadMistake() {
 	vts.vt.Do(r, vts.T()).
 		AssertBodyString("Internal Server Error").
 		AssertStatus(500)
+}
+
+func (vts *VektorSuite) TestSock() {
+	r, err := http.NewRequest(http.MethodGet, "/sock", nil)
+	r.Header.Add("Connection", "upgrade")
+	r.Header.Add("Upgrade", "websocket")
+	r.Header.Add("Sec-WebSocket-Version", "13")
+	r.Header.Add("Sec-WebSocket-Key", "some-key")
+
+	if err != nil {
+		vts.Error(err)
+	}
+
+	vts.vt.Do(r, vts.T()).
+		AssertStatus(101). // 101 Switching Protocols
+		AssertHeader("Upgrade", "websocket")
 }
