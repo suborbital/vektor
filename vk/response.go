@@ -32,9 +32,9 @@ func R(status int, body interface{}) Response {
 // TODO: add convenience helpers for status codes
 
 const (
-	contentTypeJSON        contentType = "application/json"
-	contentTypeTextPlain   contentType = "text/plain"
-	contentTypeOctetStream contentType = "application/octet-stream"
+	ContentTypeJSON        contentType = "application/json"
+	ContentTypeTextPlain   contentType = "text/plain"
+	ContentTypeOctetStream contentType = "application/octet-stream"
 )
 
 // converts _something_ into bytes, best it can:
@@ -45,7 +45,7 @@ const (
 // otherwise, return (500, nil)
 func responseOrOtherToBytes(l *vlog.Logger, data interface{}) (int, []byte, contentType) {
 	if data == nil {
-		return http.StatusNoContent, []byte{}, contentTypeTextPlain
+		return http.StatusNoContent, []byte{}, ContentTypeTextPlain
 	}
 
 	statusCode := http.StatusOK
@@ -59,9 +59,9 @@ func responseOrOtherToBytes(l *vlog.Logger, data interface{}) (int, []byte, cont
 
 	// if data is []byte or string, return it as-is
 	if b, ok := realData.([]byte); ok {
-		return statusCode, b, contentTypeOctetStream
+		return statusCode, b, ContentTypeOctetStream
 	} else if s, ok := realData.(string); ok {
-		return statusCode, []byte(s), contentTypeTextPlain
+		return statusCode, []byte(s), ContentTypeTextPlain
 	}
 
 	// otherwise, assume it's a struct of some kind,
@@ -70,8 +70,8 @@ func responseOrOtherToBytes(l *vlog.Logger, data interface{}) (int, []byte, cont
 	if err != nil {
 		l.Error(errors.Wrap(err, "failed to Marshal response struct"))
 
-		return genericErrorResponseCode, []byte(genericErrorResponseBytes), contentTypeTextPlain
+		return genericErrorResponseCode, []byte(genericErrorResponseBytes), ContentTypeTextPlain
 	}
 
-	return statusCode, json, contentTypeJSON
+	return statusCode, json, ContentTypeJSON
 }

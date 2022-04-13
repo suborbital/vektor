@@ -79,13 +79,13 @@ func errorOrOtherToBytes(l *vlog.Logger, err error) (int, []byte, contentType) {
 			// any failure results in the generic response body being used
 			l.ErrorString("failed to marshal vk.Error:", marshalErr.Error(), "original error:", err.Error())
 
-			return statusCode, genericErrorResponseBytes, contentTypeTextPlain
+			return statusCode, genericErrorResponseBytes, ContentTypeTextPlain
 		}
 
-		return statusCode, errJSON, contentTypeJSON
+		return statusCode, errJSON, ContentTypeJSON
 	}
 
 	l.Warn("redacting potential unsafe error response, original error:", err.Error())
 
-	return statusCode, genericErrorResponseBytes, contentTypeTextPlain
+	return statusCode, genericErrorResponseBytes, ContentTypeTextPlain
 }

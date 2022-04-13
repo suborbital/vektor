@@ -10,7 +10,7 @@ import (
 	"github.com/suborbital/vektor/vlog"
 )
 
-const contentTypeHeaderKey = "Content-Type"
+const ContentTypeHeaderKey = "Content-Type"
 
 // used internally to convey content types
 type contentType string
@@ -120,7 +120,7 @@ func (rt *Router) handlerWrap(inner HandlerFunc) httprouter.Handle {
 
 		// check if anything in the handler chain set the content type
 		// header, and only use the auto-detected value if it wasn't
-		headerCType := w.Header().Get(contentTypeHeaderKey)
+		headerCType := w.Header().Get(ContentTypeHeaderKey)
 		shouldSetCType := headerCType == ""
 
 		ctx.Log.Debug("post-handler contenttype:", string(headerCType))
@@ -129,7 +129,7 @@ func (rt *Router) handlerWrap(inner HandlerFunc) httprouter.Handle {
 		// then set it here based on the type detected
 		if shouldSetCType {
 			ctx.Log.Debug("setting auto-detected contenttype:", string(detectedCType))
-			w.Header().Set(contentTypeHeaderKey, string(detectedCType))
+			w.Header().Set(ContentTypeHeaderKey, string(detectedCType))
 		}
 
 		w.WriteHeader(status)
