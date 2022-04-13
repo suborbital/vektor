@@ -4,14 +4,14 @@ import (
 	"net/http"
 )
 
-// Middleware represents a handler that runs on a request before reaching its handler
-type Middleware func(*http.Request, *Ctx) error
+// BeforeWare represents a handler that runs on a request before reaching its handler
+type BeforeWare func(*http.Request, *Ctx) error
 
 // Afterware represents a handler that runs on a request after the handler has dealt with the request
 type Afterware func(*http.Request, *Ctx)
 
 // ContentTypeMiddleware allows the content-type to be set
-func ContentTypeMiddleware(contentType string) Middleware {
+func ContentTypeMiddleware(contentType string) BeforeWare {
 	return func(r *http.Request, ctx *Ctx) error {
 		ctx.RespHeaders.Set(contentTypeHeaderKey, contentType)
 
@@ -21,7 +21,7 @@ func ContentTypeMiddleware(contentType string) Middleware {
 
 // CORSMiddleware enables CORS with the given domain for a route
 // pass "*" to allow all domains, or empty string to allow none
-func CORSMiddleware(domain string) Middleware {
+func CORSMiddleware(domain string) BeforeWare {
 	return func(r *http.Request, ctx *Ctx) error {
 		enableCors(ctx, domain)
 
@@ -47,8 +47,8 @@ func enableCors(ctx *Ctx, domain string) {
 	}
 }
 
-// generate a HandlerFunc that passes the request through a set of Middleware first and Afterware after
-func augmentHandler(inner HandlerFunc, middleware []Middleware, afterware []Afterware) HandlerFunc {
+// generate a HandlerFunc that passes the request through a set of BeforeWare first and Afterware after
+func augmentHandler(inner HandlerFunc, middleware []BeforeWare, afterware []Afterware) HandlerFunc {
 	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
 		defer func() {
 			// run the afterware (which cannot affect the response)

@@ -10,7 +10,7 @@ import (
 type RouteGroup struct {
 	prefix     string
 	routes     []routeHandler
-	middleware []Middleware
+	middleware []BeforeWare
 	afterware  []Afterware
 }
 
@@ -25,7 +25,7 @@ func Group(prefix string) *RouteGroup {
 	rg := &RouteGroup{
 		prefix:     prefix,
 		routes:     []routeHandler{},
-		middleware: []Middleware{},
+		middleware: []BeforeWare{},
 		afterware:  []Afterware{},
 	}
 
@@ -80,7 +80,7 @@ func (g *RouteGroup) AddGroup(group *RouteGroup) {
 }
 
 // Before adds middleware to the group, which are applied to every handler in the group (called before the handler)
-func (g *RouteGroup) Before(middleware ...Middleware) *RouteGroup {
+func (g *RouteGroup) Before(middleware ...BeforeWare) *RouteGroup {
 	g.middleware = append(g.middleware, middleware...)
 
 	return g
