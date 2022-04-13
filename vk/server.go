@@ -247,7 +247,7 @@ func (s *Server) HandleHTTP(method, path string, handler http.HandlerFunc) {
 }
 
 func createGoServer(options *Options, handler http.Handler) *http.Server {
-	if useHTTP := options.ShouldUseHTTP(); useHTTP {
+	if options.ShouldUseHTTP() {
 		return goHTTPServerWithPort(options, handler)
 	}
 
