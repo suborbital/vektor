@@ -1,0 +1,40 @@
+run:
+  timeout: 5m
+  skip-dirs-use-default: true
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+output:
+  sort-results: true
+
+linters:
+  disable-all: true
+  enable:
+    - gci
+    - deadcode
+    - govet
+    - revive
+    - unparam
+    - unused
+
+linters-settings:
+  gci:
+    no-inline-comments: true
+    no-prefix-comments: true
+    sections:
+      - standard
+      - default
+      - prefix(github.com/suborbital)
+      - prefix(github.com/suborbital/vektor)
+  govet:
+    check-shadowing: true
+    enable-all: false
+    enable:
+      - assign
+      - buildtag
+  revive:
+    max-open-files: 2048
+    rules:
+      - name: import-shadowing
+        severity: warning
+        disabled: false
