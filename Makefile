@@ -14,4 +14,7 @@ deps:
 mocks:
 	mockery --name=RouterWrapperTester --dir=./vk/test --output=./vk/test/mocks
 
-.PHONY: vk/tester vk/tester/run test deps
+lint:
+	golangci-lint run
+
+.PHONY: vk/tester vk/tester/run test deps mocks lint
