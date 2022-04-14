@@ -10,8 +10,7 @@ import (
 type RouteGroup struct {
 	prefix     string
 	routes     []routeHandler
-	middleware []BeforeWare
-	afterware  []Afterware
+	middleware []Middleware
 }
 
 type routeHandler struct {
@@ -25,8 +24,7 @@ func Group(prefix string) *RouteGroup {
 	rg := &RouteGroup{
 		prefix:     prefix,
 		routes:     []routeHandler{},
-		middleware: []BeforeWare{},
-		afterware:  []Afterware{},
+		middleware: []Middleware{},
 	}
 
 	return rg
@@ -79,20 +77,6 @@ func (g *RouteGroup) AddGroup(group *RouteGroup) {
 	g.routes = append(g.routes, group.routeHandlers()...)
 }
 
-// Before adds middleware to the group, which are applied to every handler in the group (called before the handler)
-func (g *RouteGroup) Before(middleware ...BeforeWare) *RouteGroup {
-	g.middleware = append(g.middleware, middleware...)
-
-	return g
-}
-
-// After adds afterware to the group, which are applied to every handler in the group (called after the handler)
-func (g *RouteGroup) After(afterware ...Afterware) *RouteGroup {
-	g.afterware = append(g.afterware, afterware...)
-
-	return g
-}
-
 // routeHandlers computes the "full" path for each handler, and creates
 // a HandlerFunc that chains together the group's middlewares
 // before calling the inner HandlerFunc. It can be called 'recursively'
@@ -105,7 +89,7 @@ func (g *RouteGroup) routeHandlers() []routeHandler {
 		augR := routeHandler{
 			Method:  r.Method,
 			Path:    fullPath,
-			Handler: augmentHandler(r.Handler, g.middleware, g.afterware),
+			Handler: wrapMiddleware(g.middleware, r.Handler),
 		}
 
 		routes[i] = augR
@@ -122,10 +106,6 @@ func (g *RouteGroup) addRouteHandler(method string, path string, handler Handler
 	}
 
 	g.routes = append(g.routes, rh)
-}
-
-func (g *RouteGroup) routePrefix() string {
-	return g.prefix
 }
 
 func ensureLeadingSlash(path string) string {

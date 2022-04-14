@@ -67,12 +67,12 @@ func responseOrOtherToBytes(l *vlog.Logger, data interface{}) (int, []byte, cont
 
 	// otherwise, assume it's a struct of some kind,
 	// so JSON marshal it and return it
-	json, err := json.Marshal(realData)
+	jsonData, err := json.Marshal(realData)
 	if err != nil {
 		l.Error(errors.Wrap(err, "failed to Marshal response struct"))
 
-		return genericErrorResponseCode, []byte(genericErrorResponseBytes), ContentTypeTextPlain
+		return genericErrorResponseCode, genericErrorResponseBytes, ContentTypeTextPlain
 	}
 
-	return statusCode, json, ContentTypeJSON
+	return statusCode, jsonData, ContentTypeJSON
 }
