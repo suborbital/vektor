@@ -12,7 +12,8 @@ deps:
 	go get -u -d ./...
 
 mocks:
-	mockery --name=RouterWrapperTester --dir=./vk/test --output=./vk/test/mocks
+	mockery --name=RouterWrapperTester --dir=./vk/test --output=./vk/test/mocks && \
+	mockery --name=MiddlewareTester --dir=./vk/test --output=./vk/test/mocks
 
 lint:
 	golangci-lint run

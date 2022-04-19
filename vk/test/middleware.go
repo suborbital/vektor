@@ -64,3 +64,9 @@ func headerMiddleware() vk.Middleware {
 
 	return m
 }
+
+// MiddlewareTester will be implemented by middleware testers to check for correct functioning of a before and after
+// middleware. The mock implementations will be generated from here.
+type MiddlewareTester interface {
+	CallThis(string) string
+}
