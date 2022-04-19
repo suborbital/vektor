@@ -94,7 +94,7 @@ func (g *RouteGroup) routeHandlers() []routeHandler {
 		augR := routeHandler{
 			Method:  r.Method,
 			Path:    fullPath,
-			Handler: wrapMiddleware(g.middleware, r.Handler),
+			Handler: WrapMiddleware(g.middleware, r.Handler),
 		}
 
 		routes[i] = augR
