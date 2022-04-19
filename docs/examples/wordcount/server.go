@@ -12,7 +12,7 @@ const wordcountCtxKey = "dev.suborbital.wordcount"
 
 func setupServer() *vk.Server {
 	server := vk.New(vk.UseAppName("wordcount"), vk.UseHTTPPort(9090))
-	api := vk.Group("/api/v1").Before(createWordcountMiddleware)
+	api := vk.Group("/api/v1").Middleware(createWordcountMiddleware())
 	api.POST("/wc", handlePost)
 
 	server.AddGroup(api)
@@ -20,16 +20,24 @@ func setupServer() *vk.Server {
 	return server
 }
 
-func createWordcountMiddleware(r *http.Request, ctx *vk.Ctx) error {
-	text, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return err
+func createWordcountMiddleware() vk.Middleware {
+	m := func(handler vk.HandlerFunc) vk.HandlerFunc {
+		f := func(r *http.Request, ctx *vk.Ctx) (iFace interface{}, err error) {
+			text, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				return nil, vk.E(http.StatusInternalServerError, "reading body failed")
+			}
+
+			wc := Wordcount(text)
+			ctx.Set(wordcountCtxKey, wc)
+
+			return handler(r, ctx)
+		}
+
+		return f
 	}
 
-	wc := Wordcount(string(text))
-	ctx.Set(wordcountCtxKey, wc)
-
-	return nil
+	return m
 }
 
 type WCResponse struct {

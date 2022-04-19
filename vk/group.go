@@ -30,6 +30,11 @@ func Group(prefix string) *RouteGroup {
 	return rg
 }
 
+func (g *RouteGroup) Middleware(mw ...Middleware) *RouteGroup {
+	g.middleware = mw
+	return g
+}
+
 // GET is a shortcut for server.Handle(http.MethodGet, path, handler)
 func (g *RouteGroup) GET(path string, handler HandlerFunc) {
 	g.addRouteHandler(http.MethodGet, path, handler)
