@@ -35,10 +35,10 @@ func (d *defaultProducer) Debug(msgs ...interface{}) string {
 // Trace prints a function name and returns a function to be deferred, logging the completion of a function
 func (d *defaultProducer) Trace(fnName string) (string, func() string) {
 	traceFunc := func() string {
-		return (fmt.Sprintf("(T) %s completed", fnName))
+		return fmt.Sprintf("(T) %s completed", fnName)
 	}
 
-	return (fmt.Sprintf("(T) %s", fnName)), traceFunc
+	return fmt.Sprintf("(T) %s", fnName), traceFunc
 }
 
 func redactAndJoinInterfaces(msgs ...interface{}) string {
