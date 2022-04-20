@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/pkg/errors v0.9.1
-	github.com/sethvargo/go-envconfig v0.4.0
+	github.com/sethvargo/go-envconfig v0.6.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
 )
