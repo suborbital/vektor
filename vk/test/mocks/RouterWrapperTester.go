@@ -13,6 +13,14 @@ type RouterWrapperTester struct {
 	mock.Mock
 }
 
+type RouterWrapperTester_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *RouterWrapperTester) EXPECT() *RouterWrapperTester_Expecter {
+	return &RouterWrapperTester_Expecter{mock: &_m.Mock}
+}
+
 // CalledIt provides a mock function with given fields:
 func (_m *RouterWrapperTester) CalledIt() string {
 	ret := _m.Called()
@@ -25,6 +33,28 @@ func (_m *RouterWrapperTester) CalledIt() string {
 	}
 
 	return r0
+}
+
+// RouterWrapperTester_CalledIt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CalledIt'
+type RouterWrapperTester_CalledIt_Call struct {
+	*mock.Call
+}
+
+// CalledIt is a helper method to define mock.On call
+func (_e *RouterWrapperTester_Expecter) CalledIt() *RouterWrapperTester_CalledIt_Call {
+	return &RouterWrapperTester_CalledIt_Call{Call: _e.mock.On("CalledIt")}
+}
+
+func (_c *RouterWrapperTester_CalledIt_Call) Run(run func()) *RouterWrapperTester_CalledIt_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *RouterWrapperTester_CalledIt_Call) Return(_a0 string) *RouterWrapperTester_CalledIt_Call {
+	_c.Call.Return(_a0)
+	return _c
 }
 
 // NewRouterWrapperTester creates a new instance of RouterWrapperTester. It also registers a cleanup function to assert the mocks expectations.

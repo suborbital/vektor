@@ -1,12 +1,13 @@
 package test_test
 
 import (
+	"net/http"
+
 	"github.com/suborbital/vektor/vk"
 	"github.com/suborbital/vektor/vk/test"
 	"github.com/suborbital/vektor/vk/test/mocks"
 	"github.com/suborbital/vektor/vlog"
 	"github.com/suborbital/vektor/vtest"
-	"net/http"
 )
 
 func (vts *VektorSuite) TestWrapper() {
@@ -14,9 +15,7 @@ func (vts *VektorSuite) TestWrapper() {
 	logger := vlog.Default(vlog.Level(vlog.LogLevelError))
 
 	rw := &mocks.RouterWrapperTester{}
-	rw.On("CalledIt").Return(func() string {
-		return "hello"
-	}).Times(1)
+	rw.EXPECT().CalledIt().Return("hello").Times(1)
 
 	server := vk.New(
 		vk.UseLogger(logger),
