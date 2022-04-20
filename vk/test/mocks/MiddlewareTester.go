@@ -21,8 +21,8 @@ func (_m *MiddlewareTester) EXPECT() *MiddlewareTester_Expecter {
 	return &MiddlewareTester_Expecter{mock: &_m.Mock}
 }
 
-// CallThis provides a mock function with given fields: _a0
-func (_m *MiddlewareTester) CallThis(_a0 string) string {
+// JobInMiddleware provides a mock function with given fields: _a0
+func (_m *MiddlewareTester) JobInMiddleware(_a0 string) string {
 	ret := _m.Called(_a0)
 
 	var r0 string
@@ -35,25 +35,25 @@ func (_m *MiddlewareTester) CallThis(_a0 string) string {
 	return r0
 }
 
-// MiddlewareTester_CallThis_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CallThis'
-type MiddlewareTester_CallThis_Call struct {
+// MiddlewareTester_JobInMiddleware_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'JobInMiddleware'
+type MiddlewareTester_JobInMiddleware_Call struct {
 	*mock.Call
 }
 
-// CallThis is a helper method to define mock.On call
+// JobInMiddleware is a helper method to define mock.On call
 //  - _a0 string
-func (_e *MiddlewareTester_Expecter) CallThis(_a0 interface{}) *MiddlewareTester_CallThis_Call {
-	return &MiddlewareTester_CallThis_Call{Call: _e.mock.On("CallThis", _a0)}
+func (_e *MiddlewareTester_Expecter) JobInMiddleware(_a0 interface{}) *MiddlewareTester_JobInMiddleware_Call {
+	return &MiddlewareTester_JobInMiddleware_Call{Call: _e.mock.On("JobInMiddleware", _a0)}
 }
 
-func (_c *MiddlewareTester_CallThis_Call) Run(run func(_a0 string)) *MiddlewareTester_CallThis_Call {
+func (_c *MiddlewareTester_JobInMiddleware_Call) Run(run func(_a0 string)) *MiddlewareTester_JobInMiddleware_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *MiddlewareTester_CallThis_Call) Return(_a0 string) *MiddlewareTester_CallThis_Call {
+func (_c *MiddlewareTester_JobInMiddleware_Call) Return(_a0 string) *MiddlewareTester_JobInMiddleware_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
