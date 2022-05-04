@@ -171,6 +171,10 @@ func (v *Logger) log(message string, scope interface{}, level int) {
 func outputForOptions(opts *Options) (io.Writer, error) {
 	var output io.Writer
 
+	if opts.OutputWriter != nil {
+		return opts.OutputWriter, nil
+	}
+
 	if opts.Filepath != "" {
 		file, err := os.OpenFile(opts.Filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 		if err != nil {
