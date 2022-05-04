@@ -36,7 +36,7 @@ func TestRouterSwap(t *testing.T) {
 			AssertBodyString("before")
 	})
 
-	newRouter := vk.NewRouter(logger)
+	newRouter := vk.NewRouter(logger, "")
 	newRouter.GET(p, func(r *http.Request, c *vk.Ctx) (interface{}, error) {
 		return vk.R(200, "after"), nil
 	})

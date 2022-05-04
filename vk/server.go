@@ -29,7 +29,7 @@ type Server struct {
 func New(opts ...OptionsModifier) *Server {
 	options := newOptsWithModifiers(opts...)
 
-	internalRouter := NewRouter(options.Logger)
+	internalRouter := NewRouter(options.Logger, options.FallbackAddress)
 	internalRouter.useQuietRoutes(options.QuietRoutes)
 
 	s := &Server{
