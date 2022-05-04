@@ -85,6 +85,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		if rt.fallbackProxy != nil {
 			rt.fallbackProxy.ServeHTTP(w, r)
+			return
 		}
 
 		rt.log.Debug("not handled:", r.Method, r.URL.String())
