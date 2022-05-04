@@ -3,6 +3,7 @@ package vlog
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/sethvargo/go-envconfig"
@@ -31,13 +32,14 @@ var levelStringMap = map[string]int{
 
 // Options represents the options for a VLogger
 type Options struct {
-	Level       int
-	LevelString string `env:"_LOG_LEVEL"`
-	Filepath    string `env:"_LOG_FILE"`
-	LogPrefix   string `env:"_LOG_PREFIX"`
-	EnvPrefix   string
-	AppMeta     interface{}
-	PreLogHook  LogHookFunc
+	Level        int
+	LevelString  string `env:"_LOG_LEVEL"`
+	Filepath     string `env:"_LOG_FILE"`
+	LogPrefix    string `env:"_LOG_PREFIX"`
+	OutputWriter io.Writer
+	EnvPrefix    string
+	AppMeta      interface{}
+	PreLogHook   LogHookFunc
 }
 
 type LogHookFunc func([]byte)
@@ -60,6 +62,13 @@ func newOptions(mods ...OptionsModifier) *Options {
 	opts.finalize(envPrefix)
 
 	return opts
+}
+
+// WithWriter configures the logger to write its logs to the supplied writer
+func WithWriter(writer io.Writer) OptionsModifier {
+	return func(opt *Options) {
+		opt.OutputWriter = writer
+	}
 }
 
 // Level sets the logging level to one of error, warn, info, debug, or trace
