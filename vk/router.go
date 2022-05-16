@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
 	"github.com/suborbital/vektor/vlog"
 )
@@ -19,6 +20,11 @@ type contentType string
 // instead of exposing the ResponseWriter, the function instead returns
 // an object and an error, which are handled as described in `With` below
 type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
+
+// WebSocketHandlerFunc is the vk version of http.HandlerFunc, but
+// specifically for websockets. Instead of exposing the ResponseWriter,
+// the function exposes a Gorilla `Conn`.
+type WebSocketHandlerFunc func(*http.Request, *Ctx, *websocket.Conn) error
 
 // Router handles the responses on behalf of the server
 type Router struct {
@@ -79,13 +85,17 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // mountGroup adds a group of handlers to the httprouter
 func (rt *Router) mountGroup(group *RouteGroup) {
-	for _, r := range group.routeHandlers() {
-		rt.log.Debug("mounting route", r.Method, r.Path)
-		rt.hrouter.Handle(r.Method, r.Path, rt.handlerWrap(r.Handler))
+	for _, r := range group.httpRouteHandlers() {
+		rt.log.Debug("mounting http route", r.Method, r.Path)
+		rt.hrouter.Handle(r.Method, r.Path, rt.httpHandlerWrap(r.Handler))
+	}
+	for _, r := range group.wsRouteHandlers() {
+		rt.log.Debug("mounting ws route", r.Path)
+		rt.hrouter.Handle(http.MethodGet, r.Path, rt.wsHandlerWrap(r.Handler))
 	}
 }
 
-// handlerWrap returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
+// httpHandlerWrap returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
 //
 // inner returns a body and an error;
 // the body can can be:
@@ -97,7 +107,7 @@ func (rt *Router) mountGroup(group *RouteGroup) {
 // - a vk.Error type (status and message are written to w)
 // - any other error object (status 500 and error.Error() are written to w)
 //
-func (rt *Router) handlerWrap(inner HandlerFunc) httprouter.Handle {
+func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		var status int
 		var body []byte
@@ -136,6 +146,51 @@ func (rt *Router) handlerWrap(inner HandlerFunc) httprouter.Handle {
 		w.Write(body)
 
 		logDone(status)
+	}
+}
+
+// wsHandlerWrap returns an httprouter.Handle that uses the `inner` vk.WebSocketHandleFunc to handle the request
+//
+// inner accepts a Gorilla `Conn` and reads and writes messages to it
+//
+func (rt *Router) wsHandlerWrap(inner WebSocketHandlerFunc) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		var status int
+		var body []byte
+
+		// create a context handleWrap the configured logger
+		// (and use the ctx.Log for all remaining logging
+		// in case a scope was set on it)
+		ctx := NewCtx(rt.log, params, w.Header())
+		ctx.UseScope(defaultScope{ctx.RequestID()})
+
+		logDone := rt.logRequest(r, ctx)
+
+		upgrader := websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			// Vektor accepts all origins—middleware should be used to
+			// check origins
+			CheckOrigin: func(r *http.Request) bool { return true },
+		}
+
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			status, body, _ = errorOrOtherToBytes(ctx.Log, err)
+			w.WriteHeader(status)
+			w.Write(body)
+
+			logDone(status)
+			return
+		}
+
+		err = inner(r, ctx, conn)
+
+		if err != nil {
+			status, _, _ = errorOrOtherToBytes(ctx.Log, err)
+			conn.Close()
+			logDone(status)
+		}
 	}
 }
 

@@ -2,6 +2,8 @@ package vk
 
 import (
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 // Middleware represents a handler that runs on a request before reaching its handler
@@ -48,7 +50,7 @@ func enableCors(ctx *Ctx, domain string) {
 }
 
 // generate a HandlerFunc that passes the request through a set of Middleware first and Afterware after
-func augmentHandler(inner HandlerFunc, middleware []Middleware, afterware []Afterware) HandlerFunc {
+func augmentHttpHandler(inner HandlerFunc, middleware []Middleware, afterware []Afterware) HandlerFunc {
 	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
 		defer func() {
 			// run the afterware (which cannot affect the response)
@@ -68,5 +70,29 @@ func augmentHandler(inner HandlerFunc, middleware []Middleware, afterware []Afte
 		resp, err := inner(r, ctx)
 
 		return resp, err
+	}
+}
+
+// generate a WebSockerHandlerFunc that passes the request through a set of Middleware first and Afterware after
+func augmentWsHandler(inner WebSocketHandlerFunc, middleware []Middleware, afterware []Afterware) WebSocketHandlerFunc {
+	return func(r *http.Request, ctx *Ctx, conn *websocket.Conn) error {
+		defer func() {
+			// run the afterware (which cannot affect the response)
+			// even if something in the request chain fails
+			for _, a := range afterware {
+				a(r, ctx)
+			}
+		}()
+
+		// run the middleware (which can error to stop progression)
+		for _, m := range middleware {
+			if err := m(r, ctx); err != nil {
+				return err
+			}
+		}
+
+		err := inner(r, ctx, conn)
+
+		return err
 	}
 }
