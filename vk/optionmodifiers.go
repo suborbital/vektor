@@ -85,3 +85,10 @@ func UseRouterWrapper(wrapper RouterWrapper) OptionsModifier {
 		o.RouterWrapper = wrapper
 	}
 }
+
+// UseFallbackAddress takes in an address to use as a fallback proxy address
+func UseFallbackAddress(address string) OptionsModifier {
+	return func(o *Options) {
+		o.FallbackAddress = address
+	}
+}

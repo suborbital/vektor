@@ -16,15 +16,16 @@ type RouterWrapper func(handler http.Handler) http.Handler
 
 // Options are the available options for Server
 type Options struct {
-	AppName       string `env:"_APP_NAME"`
-	Domain        string `env:"_DOMAIN"`
-	HTTPPort      int    `env:"_HTTP_PORT"`
-	TLSPort       int    `env:"_TLS_PORT"`
-	TLSConfig     *tls.Config
-	EnvPrefix     string
-	QuietRoutes   []string
-	Logger        *vlog.Logger
-	RouterWrapper RouterWrapper
+	AppName         string `env:"_APP_NAME"`
+	Domain          string `env:"_DOMAIN"`
+	HTTPPort        int    `env:"_HTTP_PORT"`
+	TLSPort         int    `env:"_TLS_PORT"`
+	TLSConfig       *tls.Config
+	EnvPrefix       string
+	QuietRoutes     []string
+	Logger          *vlog.Logger
+	RouterWrapper   RouterWrapper
+	FallbackAddress string
 
 	PreRouterInspector func(http.Request)
 }

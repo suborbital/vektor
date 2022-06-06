@@ -3,6 +3,8 @@ package vk
 import (
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"sync"
 	"time"
 
@@ -31,8 +33,9 @@ type Router struct {
 	*RouteGroup                    // the "root" RouteGroup that is mounted at server start
 	hrouter     *httprouter.Router // the internal 'actual' router
 
-	quietRoutes  map[string]bool
-	finalizeOnce sync.Once // ensure that the root only gets mounted once
+	fallbackProxy *httputil.ReverseProxy
+	quietRoutes   map[string]bool
+	finalizeOnce  sync.Once // ensure that the root only gets mounted once
 
 	log *vlog.Logger
 }
@@ -42,13 +45,23 @@ type defaultScope struct {
 }
 
 // NewRouter creates a new Router
-func NewRouter(logger *vlog.Logger) *Router {
+func NewRouter(logger *vlog.Logger, fallback string) *Router {
+	var proxy *httputil.ReverseProxy
+
+	if fallback != "" {
+		proxyURL, _ := url.Parse(fallback)
+		if proxyURL != nil {
+			proxy = httputil.NewSingleHostReverseProxy(proxyURL)
+		}
+	}
+
 	r := &Router{
-		RouteGroup:   Group(""),
-		hrouter:      httprouter.New(),
-		quietRoutes:  map[string]bool{},
-		finalizeOnce: sync.Once{},
-		log:          logger,
+		RouteGroup:    Group(""),
+		hrouter:       httprouter.New(),
+		fallbackProxy: proxy,
+		quietRoutes:   map[string]bool{},
+		finalizeOnce:  sync.Once{},
+		log:           logger,
 	}
 
 	return r
@@ -76,6 +89,11 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if handler != nil {
 		handler(w, r, params)
 	} else {
+		if rt.fallbackProxy != nil {
+			rt.fallbackProxy.ServeHTTP(w, r)
+			return
+		}
+
 		rt.log.Debug("not handled:", r.Method, r.URL.String())
 
 		// let httprouter handle the fallthrough cases
