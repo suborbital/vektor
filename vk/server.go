@@ -70,7 +70,7 @@ func (s *Server) Start() error {
 		s.options.Logger.Info("starting", s.options.AppName, "...")
 	}
 
-	s.options.Logger.Info("serving on", s.server.Addr)
+	s.options.Logger.Debug("serving on", s.server.Addr)
 
 	if !s.options.HTTPPortSet() && !s.options.ShouldUseTLS() {
 		s.options.Logger.ErrorString("domain and HTTP port options are both unset, server will start up but fail to acquire a certificate. reconfigure and restart")
@@ -106,7 +106,7 @@ func (s *Server) TestStart() error {
 	s.internalRouter.Finalize()
 
 	if s.options.AppName != "" {
-		s.options.Logger.Info("starting", s.options.AppName, "in Test Mode...")
+		s.options.Logger.Debug("starting", s.options.AppName, "in Test Mode...")
 	}
 
 	s.router = s.options.RouterWrapper(s.internalRouter)
@@ -297,7 +297,7 @@ func goTLSServerWithDomain(options *Options, handler http.Handler) *http.Server 
 }
 
 func goHTTPServerWithPort(options *Options, handler http.Handler) *http.Server {
-	options.Logger.Warn("configured to use HTTP with no TLS")
+	options.Logger.Debug("configured to use HTTP with no TLS")
 
 	s := &http.Server{
 		Addr:    fmt.Sprintf(":%d", options.HTTPPort),
