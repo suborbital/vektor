@@ -82,7 +82,7 @@ func (rt *Router) Finalize() {
 	})
 }
 
-//ServeHTTP serves HTTP requests
+// ServeHTTP serves HTTP requests
 func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// check to see if the router has a handler for this path
 	handler, params, _ := rt.hrouter.Lookup(r.Method, r.URL.Path)
