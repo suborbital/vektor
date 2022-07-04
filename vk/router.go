@@ -140,7 +140,7 @@ func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 
 		logDone := rt.logRequest(r, ctx)
 
-		resp, err := inner(r, ctx)
+		resp, err := inner(w, r, ctx)
 		if err != nil {
 			status, body, detectedCType = errorOrOtherToBytes(ctx.Log, err)
 		} else {
