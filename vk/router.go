@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
+
 	"github.com/suborbital/vektor/vlog"
 )
 
@@ -21,7 +22,7 @@ type contentType string
 // HandlerFunc is the vk version of http.HandlerFunc
 // instead of exposing the ResponseWriter, the function instead returns
 // an object and an error, which are handled as described in `With` below
-type HandlerFunc func(*http.Request, *Ctx) (interface{}, error)
+type HandlerFunc func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error)
 
 // WebSocketHandlerFunc is the vk version of http.HandlerFunc, but
 // specifically for websockets. Instead of exposing the ResponseWriter,
