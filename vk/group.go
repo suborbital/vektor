@@ -118,7 +118,7 @@ func (g *RouteGroup) httpRouteHandlers() []httpRouteHandler {
 		augR := httpRouteHandler{
 			Method:  r.Method,
 			Path:    fullPath,
-			Handler: augmentHttpHandler(r.Handler, g.middleware, g.afterware),
+			Handler: WrapHandler(r.Handler, g.middleware...),
 		}
 
 		routes[i] = augR
