@@ -63,7 +63,7 @@ func HandleBadMistake(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) (interf
 }
 
 // HandleSock hands Sock requests
-func HandleSock(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx, _ *websocket.Conn) error {
+func HandleSock(_ *http.Request, _ *vk.Ctx, _ *websocket.Conn) error {
 	return nil
 }
 
