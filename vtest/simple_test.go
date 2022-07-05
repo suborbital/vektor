@@ -14,15 +14,15 @@ type simpleStruct struct {
 	Age  int    `json:"age"`
 }
 
-func handleHello(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handleHello(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) (interface{}, error) {
 	return vk.R(200, "hello"), nil
 }
 
-func handleSimpleStruct(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handleSimpleStruct(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) (interface{}, error) {
 	return vk.R(200, simpleStruct{"Bob", 30}), nil
 }
 
-func handleSetHeaders(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handleSetHeaders(_ http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	ctx.RespHeaders.Set("X-VK-TEST", "test")
 	ctx.RespHeaders.Set("X-SUBORBITAL", "rocket launch")
 
