@@ -10,6 +10,7 @@ import (
 type RouteGroup struct {
 	prefix     string
 	httpRoutes []httpRouteHandler
+	wsRoutes   []wsRouteHandler
 	middleware []Middleware
 }
 
@@ -19,11 +20,17 @@ type httpRouteHandler struct {
 	Handler HandlerFunc
 }
 
+type wsRouteHandler struct {
+	Path    string
+	Handler WebSocketHandlerFunc
+}
+
 // Group creates a group of routes with a common prefix and middlewares
 func Group(prefix string) *RouteGroup {
 	rg := &RouteGroup{
 		prefix:     prefix,
 		httpRoutes: []httpRouteHandler{},
+		wsRoutes:   []wsRouteHandler{},
 		middleware: []Middleware{},
 	}
 
@@ -72,7 +79,7 @@ func (g *RouteGroup) Handle(method, path string, handler HandlerFunc, middleware
 
 // WebSocket adds a websocket route to be handled.
 func (g *RouteGroup) WebSocket(path string, handler WebSocketHandlerFunc) {
-	g.addHttpRouteHandler(http.MethodGet, path, WrapWebSocket(handler))
+	g.addWsRouteHandler(path, handler)
 }
 
 // AddGroup adds a group of routes to this group as a subgroup.
@@ -127,6 +134,13 @@ func (g *RouteGroup) addHttpRouteHandler(method string, path string, handler Han
 	}
 
 	g.httpRoutes = append(g.httpRoutes, rh)
+}
+
+func (g *RouteGroup) addWsRouteHandler(path string, handler WebSocketHandlerFunc) {
+	g.wsRoutes = append(g.wsRoutes, wsRouteHandler{
+		Path:    path,
+		Handler: handler,
+	})
 }
 
 func (g *RouteGroup) routePrefix() string {

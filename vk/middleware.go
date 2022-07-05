@@ -2,8 +2,6 @@ package vk
 
 import (
 	"net/http"
-
-	"github.com/gorilla/websocket"
 )
 
 // Middleware represents a handler that runs on a request before reaching its handler
@@ -58,36 +56,6 @@ func WrapHandler(handler HandlerFunc, mw ...Middleware) HandlerFunc {
 	}
 
 	return handler
-}
-
-// WrapWebSocket returns a HandlerFunc that wraps an inner WebSocketHandlerFunc. The purpose of this is to still provide
-// a convenience way of writing a websocket connection, but any and all websocket handlers are still ultimately http
-// handler functions.
-//
-// If you choose you can use a HandlerFunc and do the connection upgrade in the handler func directly rather than wrap
-// one in this one that does it for you.
-//
-// inner accepts a Gorilla `Conn` and reads and writes messages to it
-func WrapWebSocket(inner WebSocketHandlerFunc) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error) {
-		upgrader := websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-			// Vektor accepts all origins—middleware should be used to
-			// check origins
-			CheckOrigin: func(r *http.Request) bool { return true },
-		}
-
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			status, body, _ := errorOrOtherToBytes(ctx.Log, err)
-
-			return nil, E(status, string(body))
-		}
-		defer conn.Close()
-
-		return nil, inner(r, ctx, conn)
-	}
 }
 
 func enableCors(ctx *Ctx, domain string) {
