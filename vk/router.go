@@ -22,7 +22,7 @@ type contentType string
 // HandlerFunc is the vk version of http.HandlerFunc
 // instead of exposing the ResponseWriter, the function instead returns
 // an object and an error, which are handled as described in `With` below
-type HandlerFunc func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error)
+type HandlerFunc func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error
 
 // WebSocketHandlerFunc is the vk version of http.HandlerFunc, but
 // specifically for websockets. Instead of exposing the ResponseWriter,
@@ -124,87 +124,19 @@ func (rt *Router) mountGroup(group *RouteGroup) {
 //
 func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		var status int
-		var body []byte
-		var detectedCType contentType
-
 		// create a context handleWrap the configured logger
 		// (and use the ctx.Log for all remaining logging
 		// in case a scope was set on it)
 		ctx := NewCtx(rt.log, params, w.Header())
 		ctx.UseScope(defaultScope{ctx.RequestID()})
 
-		logDone := rt.logRequest(r, ctx)
-
-		resp, err := inner(w, r, ctx)
+		// There is (should be) an error handling middleware there which should not return an error itself. If there IS
+		// an error here, something went very wrong, and it's a stop the world event.
+		err := inner(w, r, ctx)
 		if err != nil {
-			status, body, detectedCType = errorOrOtherToBytes(ctx.Log, err)
-		} else {
-			status, body, detectedCType = responseOrOtherToBytes(ctx.Log, resp)
-		}
-
-		// check if anything in the handler chain set the content type
-		// header, and only use the auto-detected value if it wasn't
-		headerCType := w.Header().Get(contentTypeHeaderKey)
-		shouldSetCType := headerCType == ""
-
-		ctx.Log.Debug("post-handler contenttype:", headerCType)
-
-		// if no contentType was set in the middleware chain,
-		// then set it here based on the type detected
-		if shouldSetCType {
-			ctx.Log.Debug("setting auto-detected contenttype:", string(detectedCType))
-			w.Header().Set(contentTypeHeaderKey, string(detectedCType))
-		}
-
-		w.WriteHeader(status)
-		w.Write(body)
-
-		logDone(status)
-	}
-}
-
-// wsHandlerWrap returns an httprouter.Handle that uses the `inner` vk.WebSocketHandleFunc to handle the request
-//
-// inner accepts a Gorilla `Conn` and reads and writes messages to it
-//
-func (rt *Router) wsHandlerWrap(inner WebSocketHandlerFunc) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		var status int
-		var body []byte
-
-		// create a context handleWrap the configured logger
-		// (and use the ctx.Log for all remaining logging
-		// in case a scope was set on it)
-		ctx := NewCtx(rt.log, params, w.Header())
-		ctx.UseScope(defaultScope{ctx.RequestID()})
-
-		logDone := rt.logRequest(r, ctx)
-
-		upgrader := websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-			// Vektor accepts all origins—middleware should be used to
-			// check origins
-			CheckOrigin: func(r *http.Request) bool { return true },
-		}
-
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			status, body, _ = errorOrOtherToBytes(ctx.Log, err)
-			w.WriteHeader(status)
-			w.Write(body)
-
-			logDone(status)
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`something went very wrong`))
 			return
-		}
-
-		err = inner(r, ctx, conn)
-
-		if err != nil {
-			status, _, _ = errorOrOtherToBytes(ctx.Log, err)
-			conn.Close()
-			logDone(status)
 		}
 	}
 }

@@ -21,10 +21,10 @@ func setupServer() *vk.Server {
 }
 
 func createWordCountMiddleware(inner vk.HandlerFunc) vk.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+	return func(w http.ResponseWriter, r *http.Request, ctx *vk.Ctx) error {
 		text, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			return nil, vk.E(http.StatusInternalServerError, err.Error())
+			return vk.E(http.StatusInternalServerError, err.Error())
 		}
 
 		wc := Wordcount(text)
@@ -48,10 +48,10 @@ func NewWCResponse(wc Wordcount) *WCResponse {
 	}
 }
 
-func handlePost(_ http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func handlePost(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	wc := ctx.Get(wordCountCtxKey).(Wordcount)
 
-	return vk.R(http.StatusOK, NewWCResponse(wc)), nil
+	return vk.RespondWeb(ctx.Context, w, NewWCResponse(wc), http.StatusOK)
 }
 
 func main() {

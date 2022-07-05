@@ -28,8 +28,8 @@ func (vts *VektorSuite) TestWrapper() {
 
 	p := "/wrappedpath"
 
-	server.GET(p, func(w http.ResponseWriter, r *http.Request, c *vk.Ctx) (interface{}, error) {
-		return vk.R(200, "before"), nil
+	server.GET(p, func(w http.ResponseWriter, r *http.Request, c *vk.Ctx) error {
+		return vk.RespondWeb(c.Context, w, "before", http.StatusOK)
 	})
 
 	vts.vt = vtest.New(server)

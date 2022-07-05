@@ -34,32 +34,32 @@ func AddRoutes(server *vk.Server) {
 }
 
 // HandleFound returns 200
-func HandleFound(_ http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func HandleFound(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("found!")
 
-	return vk.R(200, "gotcha"), nil
+	return vk.RespondWeb(ctx.Context, w, "gotcha", http.StatusOK)
 }
 
 // HandleNotFound returns 404
-func HandleNotFound(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) (interface{}, error) {
-	return nil, vk.E(http.StatusNotFound, "Not Found")
+func HandleNotFound(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) error {
+	return vk.E(http.StatusNotFound, "Not Found")
 }
 
 // HandleMe handles Me requests
-func HandleMe(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) (interface{}, error) {
-	return vk.R(200, struct{ Me string }{Me: "mario"}), nil
+func HandleMe(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
+	return vk.RespondWeb(ctx.Context, w, struct{ Me string }{Me: "mario"}, http.StatusOK)
 }
 
 // HandleYou handles You requests
-func HandleYou(_ http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func HandleYou(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("calling you!")
 
-	return vk.R(201, "created, I guess"), nil
+	return vk.RespondWeb(ctx.Context, w, "created, I guess", http.StatusCreated)
 }
 
 // HandleBadMistake handles a bad mistake
-func HandleBadMistake(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) (interface{}, error) {
-	return nil, errors.New("this is a bad idea")
+func HandleBadMistake(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) error {
+	return errors.New("this is a bad idea")
 }
 
 // HandleSock hands Sock requests

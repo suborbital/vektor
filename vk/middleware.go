@@ -10,7 +10,7 @@ type Middleware func(HandlerFunc) HandlerFunc
 // ContentTypeMiddleware allows the content-type to be set
 func ContentTypeMiddleware(contentType string) Middleware {
 	return func(inner HandlerFunc) HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error) {
+		return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
 			ctx.RespHeaders.Set(contentTypeHeaderKey, contentType)
 
 			return inner(w, r, ctx)
@@ -22,7 +22,7 @@ func ContentTypeMiddleware(contentType string) Middleware {
 // pass "*" to allow all domains, or empty string to allow none
 func CORSMiddleware(domain string) Middleware {
 	return func(inner HandlerFunc) HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error) {
+		return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
 			enableCors(ctx, domain)
 
 			return inner(w, r, ctx)
@@ -33,10 +33,10 @@ func CORSMiddleware(domain string) Middleware {
 // CORSHandler enables CORS for a route
 // pass "*" to allow all domains, or empty string to allow none
 func CORSHandler(domain string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error) {
+	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
 		enableCors(ctx, domain)
 
-		return nil, nil
+		return nil
 	}
 }
 
