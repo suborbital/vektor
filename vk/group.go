@@ -77,9 +77,9 @@ func (g *RouteGroup) Handle(method, path string, handler HandlerFunc, middleware
 	g.addHttpRouteHandler(method, path, WrapHandler(handler, middleware...))
 }
 
-// WebSocket adds a websocket route to be handled
+// WebSocket adds a websocket route to be handled.
 func (g *RouteGroup) WebSocket(path string, handler WebSocketHandlerFunc) {
-	g.addWsRouteHandler(path, handler)
+	g.addHttpRouteHandler(http.MethodGet, path, WrapWebSocket(handler))
 }
 
 // AddGroup adds a group of routes to this group as a subgroup.
@@ -87,7 +87,6 @@ func (g *RouteGroup) WebSocket(path string, handler WebSocketHandlerFunc) {
 // with the resulting path being "/group.prefix/subgroup.prefix/route/path/here"
 func (g *RouteGroup) AddGroup(group *RouteGroup) {
 	g.httpRoutes = append(g.httpRoutes, group.httpRouteHandlers()...)
-	g.wsRoutes = append(g.wsRoutes, group.wsRouteHandlers()...)
 }
 
 // Before adds middleware to the group, which are applied to every handler in the group (called before the handler)
@@ -119,26 +118,6 @@ func (g *RouteGroup) httpRouteHandlers() []httpRouteHandler {
 			Method:  r.Method,
 			Path:    fullPath,
 			Handler: WrapHandler(r.Handler, g.middleware...),
-		}
-
-		routes[i] = augR
-	}
-
-	return routes
-}
-
-// wsRouteHandlers computes the "full" path for each handler, and creates
-// a HandlerFunc that chains together the group's middlewares
-// before calling the inner WebSocketHandlerFunc. It can be called 'recursively'
-// since groups can be added to groups
-func (g *RouteGroup) wsRouteHandlers() []wsRouteHandler {
-	routes := make([]wsRouteHandler, len(g.wsRoutes))
-
-	for i, r := range g.wsRoutes {
-		fullPath := fmt.Sprintf("%s%s", ensureLeadingSlash(g.prefix), ensureLeadingSlash(r.Path))
-		augR := wsRouteHandler{
-			Path:    fullPath,
-			Handler: augmentWsHandler(r.Handler, g.middleware, g.afterware),
 		}
 
 		routes[i] = augR
