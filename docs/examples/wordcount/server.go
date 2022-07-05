@@ -8,11 +8,11 @@ import (
 	"github.com/suborbital/vektor/vk"
 )
 
-const wordcountCtxKey = "dev.suborbital.wordcount"
+const wordCountCtxKey = "dev.suborbital.wordCount"
 
 func setupServer() *vk.Server {
-	server := vk.New(vk.UseAppName("wordcount"), vk.UseHTTPPort(9090))
-	api := vk.Group("/api/v1").Before(createWordcountMiddleware)
+	server := vk.New(vk.UseAppName("wordCount"), vk.UseHTTPPort(9090))
+	api := vk.Group("/api/v1").Before(createWordCountMiddleware)
 	api.POST("/wc", handlePost)
 
 	server.AddGroup(api)
@@ -20,16 +20,18 @@ func setupServer() *vk.Server {
 	return server
 }
 
-func createWordcountMiddleware(r *http.Request, ctx *vk.Ctx) error {
-	text, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return err
+func createWordCountMiddleware(inner vk.HandlerFunc) vk.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+		text, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return nil, vk.E(http.StatusInternalServerError, err.Error())
+		}
+
+		wc := Wordcount(text)
+		ctx.Set(wordCountCtxKey, wc)
+
+		return inner(w, r, ctx)
 	}
-
-	wc := Wordcount(string(text))
-	ctx.Set(wordcountCtxKey, wc)
-
-	return nil
 }
 
 type WCResponse struct {
@@ -46,8 +48,8 @@ func NewWCResponse(wc Wordcount) *WCResponse {
 	}
 }
 
-func handlePost(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
-	wc := ctx.Get(wordcountCtxKey).(Wordcount)
+func handlePost(_ http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) (interface{}, error) {
+	wc := ctx.Get(wordCountCtxKey).(Wordcount)
 
 	return vk.R(http.StatusOK, NewWCResponse(wc)), nil
 }

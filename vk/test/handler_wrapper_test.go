@@ -1,12 +1,13 @@
 package test_test
 
 import (
+	"net/http"
+
 	"github.com/suborbital/vektor/vk"
 	"github.com/suborbital/vektor/vk/test"
 	"github.com/suborbital/vektor/vk/test/mocks"
 	"github.com/suborbital/vektor/vlog"
 	"github.com/suborbital/vektor/vtest"
-	"net/http"
 )
 
 func (vts *VektorSuite) TestWrapper() {
@@ -27,7 +28,7 @@ func (vts *VektorSuite) TestWrapper() {
 
 	p := "/wrappedpath"
 
-	server.GET(p, func(r *http.Request, c *vk.Ctx) (interface{}, error) {
+	server.GET(p, func(w http.ResponseWriter, r *http.Request, c *vk.Ctx) (interface{}, error) {
 		return vk.R(200, "before"), nil
 	})
 
