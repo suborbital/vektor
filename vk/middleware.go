@@ -84,6 +84,7 @@ func WrapWebSocket(inner WebSocketHandlerFunc) HandlerFunc {
 
 			return nil, E(status, string(body))
 		}
+		defer conn.Close()
 
 		return nil, inner(r, ctx, conn)
 	}
