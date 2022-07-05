@@ -78,11 +78,30 @@ func responseOrOtherToBytes(l *vlog.Logger, data interface{}) (int, []byte, cont
 	return statusCode, json, contentTypeJSON
 }
 
-// RespondWeb converts a Go value to JSON and sends it to the client.
-func RespondWeb(ctx context.Context, w http.ResponseWriter, data any, statusCode int) error {
+type RawString string
+type RawBytes []byte
+
+// RespondWeb converts a value to either raw string or json, and sends it to the client. Ctx is a placeholder here, it
+// is currently unused, but will be used for tracing / logging help purposes later.
+func RespondWeb(_ context.Context, w http.ResponseWriter, data any, statusCode int) error {
 	// If there is nothing to marshal then set status code and return.
 	if statusCode == http.StatusNoContent {
 		w.WriteHeader(statusCode)
+		return nil
+	}
+
+	// If the data is deliberately set as raw bytes or raw strings, return them as is. If we don't have this, they will
+	// be marshalled into json, which will wrap a naked string into double quotes.
+	switch i := data.(type) {
+	case RawBytes:
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(statusCode)
+		_, _ = w.Write(i)
+		return nil
+	case RawString:
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(statusCode)
+		_, _ = w.Write([]byte(i))
 		return nil
 	}
 
