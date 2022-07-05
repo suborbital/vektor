@@ -105,12 +105,8 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // mountGroup adds a group of handlers to the httprouter
 func (rt *Router) mountGroup(group *RouteGroup) {
 	for _, r := range group.httpRouteHandlers() {
-		rt.log.Debug("mounting http route", r.Method, r.Path)
+		rt.log.Debug("mounting route", r.Method, r.Path)
 		rt.hrouter.Handle(r.Method, r.Path, rt.httpHandlerWrap(r.Handler))
-	}
-	for _, r := range group.wsRouteHandlers() {
-		rt.log.Debug("mounting ws route", r.Path)
-		rt.hrouter.Handle(http.MethodGet, r.Path, rt.wsHandlerWrap(r.Handler))
 	}
 }
 
@@ -168,23 +164,17 @@ func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 	}
 }
 
-// wsHandlerWrap returns an httprouter.Handle that uses the `inner` vk.WebSocketHandleFunc to handle the request
+// wsHandlerWrap returns a HandlerFunc that wraps an inner WebSocketHandlerFunc. The purpose of this is to still provide
+// a convenience way of writing a websocket connection, but any and all websocket handlers are still ultimately http
+// handler functions.
+//
+// If you choose you can use a HandlerFunc and do the connection upgrade in the handler func directly rather than wrap
+// one in this one that does it for you.
 //
 // inner accepts a Gorilla `Conn` and reads and writes messages to it
 //
-func (rt *Router) wsHandlerWrap(inner WebSocketHandlerFunc) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		var status int
-		var body []byte
-
-		// create a context handleWrap the configured logger
-		// (and use the ctx.Log for all remaining logging
-		// in case a scope was set on it)
-		ctx := NewCtx(rt.log, params, w.Header())
-		ctx.UseScope(defaultScope{ctx.RequestID()})
-
-		logDone := rt.logRequest(r, ctx)
-
+func (rt *Router) wsHandlerWrap(inner WebSocketHandlerFunc) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) (interface{}, error) {
 		upgrader := websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -195,21 +185,12 @@ func (rt *Router) wsHandlerWrap(inner WebSocketHandlerFunc) httprouter.Handle {
 
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			status, body, _ = errorOrOtherToBytes(ctx.Log, err)
-			w.WriteHeader(status)
-			w.Write(body)
+			status, body, _ := errorOrOtherToBytes(ctx.Log, err)
 
-			logDone(status)
-			return
+			return nil, E(status, string(body))
 		}
 
-		err = inner(r, ctx, conn)
-
-		if err != nil {
-			status, _, _ = errorOrOtherToBytes(ctx.Log, err)
-			conn.Close()
-			logDone(status)
-		}
+		return nil, inner(r, ctx, conn)
 	}
 }
 

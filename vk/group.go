@@ -157,15 +157,6 @@ func (g *RouteGroup) addHttpRouteHandler(method string, path string, handler Han
 	g.httpRoutes = append(g.httpRoutes, rh)
 }
 
-func (g *RouteGroup) addWsRouteHandler(path string, handler WebSocketHandlerFunc) {
-	rh := wsRouteHandler{
-		Path:    path,
-		Handler: handler,
-	}
-
-	g.wsRoutes = append(g.wsRoutes, rh)
-}
-
 func (g *RouteGroup) routePrefix() string {
 	return g.prefix
 }
