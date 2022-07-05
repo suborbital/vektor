@@ -148,7 +148,7 @@ func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 		headerCType := w.Header().Get(contentTypeHeaderKey)
 		shouldSetCType := headerCType == ""
 
-		ctx.Log.Debug("post-handler contenttype:", string(headerCType))
+		ctx.Log.Debug("post-handler contenttype:", headerCType)
 
 		// if no contentType was set in the middleware chain,
 		// then set it here based on the type detected
