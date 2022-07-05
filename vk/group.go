@@ -10,7 +10,6 @@ import (
 type RouteGroup struct {
 	prefix     string
 	httpRoutes []httpRouteHandler
-	wsRoutes   []wsRouteHandler
 	middleware []Middleware
 }
 
@@ -20,17 +19,11 @@ type httpRouteHandler struct {
 	Handler HandlerFunc
 }
 
-type wsRouteHandler struct {
-	Path    string
-	Handler WebSocketHandlerFunc
-}
-
 // Group creates a group of routes with a common prefix and middlewares
 func Group(prefix string) *RouteGroup {
 	rg := &RouteGroup{
 		prefix:     prefix,
 		httpRoutes: []httpRouteHandler{},
-		wsRoutes:   []wsRouteHandler{},
 		middleware: []Middleware{},
 	}
 
