@@ -2,6 +2,8 @@ package vk
 
 import (
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 // Middleware represents a handler that runs on a request before reaching its handler
@@ -56,6 +58,25 @@ func WrapHandler(handler HandlerFunc, mw ...Middleware) HandlerFunc {
 	}
 
 	return handler
+}
+
+func WrapWebsocket(handler WebSocketHandlerFunc) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
+		upgrader := websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return E(http.StatusInternalServerError, err.Error())
+		}
+
+		return handler(r, ctx, conn)
+	}
 }
 
 func enableCors(ctx *Ctx, domain string) {

@@ -135,7 +135,7 @@ func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 		err := inner(w, r, ctx)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(`something went very wrong`))
+			_, _ = w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 			return
 		}
 	}

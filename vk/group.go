@@ -79,7 +79,7 @@ func (g *RouteGroup) Handle(method, path string, handler HandlerFunc, middleware
 
 // WebSocket adds a websocket route to be handled.
 func (g *RouteGroup) WebSocket(path string, handler WebSocketHandlerFunc) {
-	g.addWsRouteHandler(path, handler)
+	g.addHttpRouteHandler(http.MethodGet, path, WrapWebsocket(handler))
 }
 
 // AddGroup adds a group of routes to this group as a subgroup.
@@ -134,13 +134,6 @@ func (g *RouteGroup) addHttpRouteHandler(method string, path string, handler Han
 	}
 
 	g.httpRoutes = append(g.httpRoutes, rh)
-}
-
-func (g *RouteGroup) addWsRouteHandler(path string, handler WebSocketHandlerFunc) {
-	g.wsRoutes = append(g.wsRoutes, wsRouteHandler{
-		Path:    path,
-		Handler: handler,
-	})
 }
 
 func (g *RouteGroup) routePrefix() string {

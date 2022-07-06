@@ -37,7 +37,7 @@ func AddRoutes(server *vk.Server) {
 func HandleFound(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("found!")
 
-	return vk.RespondWeb(ctx.Context, w, "gotcha", http.StatusOK)
+	return vk.RespondWeb(ctx.Context, w, vk.RawString("gotcha"), http.StatusOK)
 }
 
 // HandleNotFound returns 404

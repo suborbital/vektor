@@ -20,7 +20,7 @@ func TestRouterSwap(t *testing.T) {
 	p := "/somepath"
 
 	server.GET(p, func(w http.ResponseWriter, r *http.Request, c *vk.Ctx) error {
-		return vk.RespondWeb(c.Context, w, "before", http.StatusOK)
+		return vk.RespondWeb(c.Context, w, vk.RawString("before"), http.StatusOK)
 	})
 
 	vt := vtest.New(server)
@@ -38,7 +38,7 @@ func TestRouterSwap(t *testing.T) {
 
 	newRouter := vk.NewRouter(logger, "")
 	newRouter.GET(p, func(w http.ResponseWriter, r *http.Request, c *vk.Ctx) error {
-		return vk.RespondWeb(c.Context, w, "after", http.StatusOK)
+		return vk.RespondWeb(c.Context, w, vk.RawString("after"), http.StatusOK)
 	})
 
 	server.SwapRouter(newRouter)

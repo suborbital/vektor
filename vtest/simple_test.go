@@ -15,7 +15,7 @@ type simpleStruct struct {
 }
 
 func handleHello(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
-	return vk.RespondWeb(ctx.Context, w, "hello", http.StatusOK)
+	return vk.RespondWeb(ctx.Context, w, vk.RawString("hello"), http.StatusOK)
 }
 
 func handleSimpleStruct(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
