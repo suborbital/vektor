@@ -31,6 +31,7 @@ func New(opts ...OptionsModifier) *Server {
 
 	internalRouter := NewRouter(options.Logger, options.FallbackAddress)
 	internalRouter.useQuietRoutes(options.QuietRoutes)
+	internalRouter.WithMiddlewares(ErrorMiddleware())
 
 	s := &Server{
 		internalRouter: internalRouter,

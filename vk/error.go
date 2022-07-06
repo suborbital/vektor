@@ -1,10 +1,7 @@
 package vk
 
 import (
-	"encoding/json"
 	"fmt"
-
-	"github.com/suborbital/vektor/vlog"
 )
 
 // Error is an interface representing a failed request
@@ -55,37 +52,4 @@ func E(status int, message string) Error {
 // Wrap wraps an error in vk.Error
 func Wrap(status int, err error) Error {
 	return Err(status, err.Error())
-}
-
-var (
-	genericErrorResponseBytes = []byte("Internal Server Error")
-	genericErrorResponseCode  = 500
-)
-
-// converts _something_ into bytes, best it can:
-// if data is Error type, returns (status, {status: status, message: message})
-// if other error, returns (500, []byte(err.Error()))
-func errorOrOtherToBytes(l *vlog.Logger, err error) (int, []byte, contentType) {
-	statusCode := genericErrorResponseCode
-
-	// first, check if it's vk.Error interface type, and unpack it for further processing
-	if e, ok := err.(Error); ok {
-		statusCode = e.Status() // grab this in case anything fails
-
-		errResp := Err(e.Status(), e.Message()) // create a concrete instance that can be marshalled
-
-		errJSON, marshalErr := json.Marshal(errResp)
-		if marshalErr != nil {
-			// any failure results in the generic response body being used
-			l.ErrorString("failed to marshal vk.Error:", marshalErr.Error(), "original error:", err.Error())
-
-			return statusCode, genericErrorResponseBytes, contentTypeTextPlain
-		}
-
-		return statusCode, errJSON, contentTypeJSON
-	}
-
-	l.Warn("redacting potential unsafe error response, original error:", err.Error())
-
-	return statusCode, genericErrorResponseBytes, contentTypeTextPlain
 }

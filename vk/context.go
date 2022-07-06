@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
+
 	"github.com/suborbital/vektor/vlog"
 )
 
