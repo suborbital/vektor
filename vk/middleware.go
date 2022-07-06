@@ -1,10 +1,12 @@
 package vk
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 )
 
 // Middleware represents a handler that runs on a request before reaching its handler
@@ -86,7 +88,12 @@ func ErrorMiddleware() Middleware {
 				if e, ok := err.(Error); ok {
 					// we received a trusted error, which means we can pass on the status and message set on it.
 					w.WriteHeader(e.Status())
-					_, _ = w.Write([]byte(e.Message()))
+					errJson, err := json.Marshal(e)
+					if err != nil {
+						return errors.Wrap(err, "could not marshal error into json")
+					}
+
+					_, _ = w.Write(errJson)
 					return nil
 				}
 
