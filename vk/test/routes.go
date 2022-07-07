@@ -37,7 +37,7 @@ func AddRoutes(server *vk.Server) {
 func HandleFound(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("found!")
 
-	return vk.RespondWeb(ctx.Context, w, vk.RawString("gotcha"), http.StatusOK)
+	return vk.RespondString(ctx.Context, w, "gotcha", http.StatusOK)
 }
 
 // HandleNotFound returns 404
@@ -47,14 +47,14 @@ func HandleNotFound(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) error {
 
 // HandleMe handles Me requests
 func HandleMe(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
-	return vk.RespondWeb(ctx.Context, w, struct{ Me string }{Me: "mario"}, http.StatusOK)
+	return vk.RespondJSON(ctx.Context, w, struct{ Me string }{Me: "mario"}, http.StatusOK)
 }
 
 // HandleYou handles You requests
 func HandleYou(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("calling you!")
 
-	return vk.RespondWeb(ctx.Context, w, "created, I guess", http.StatusCreated)
+	return vk.RespondJSON(ctx.Context, w, "created, I guess", http.StatusCreated)
 }
 
 // HandleBadMistake handles a bad mistake
