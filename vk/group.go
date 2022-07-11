@@ -89,11 +89,6 @@ func (g *RouteGroup) AddGroup(group *RouteGroup) {
 	g.httpRoutes = append(g.httpRoutes, group.httpRouteHandlers()...)
 }
 
-// Before adds middleware to the group, which are applied to every handler in the group (called before the handler)
-func (g *RouteGroup) Before(middleware ...Middleware) *RouteGroup {
-	return g.WithMiddlewares(middleware...)
-}
-
 // WithMiddlewares takes a list of Middlewares and will apply all of them to every handler in the group. Like in the
 // WrapHandler, the first middleware is going to be the closest to each of the handlers in the group.
 //

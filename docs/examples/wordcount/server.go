@@ -12,7 +12,7 @@ const wordCountCtxKey = "dev.suborbital.wordCount"
 
 func setupServer() *vk.Server {
 	server := vk.New(vk.UseAppName("wordCount"), vk.UseHTTPPort(9090))
-	api := vk.Group("/api/v1").Before(createWordCountMiddleware)
+	api := vk.Group("/api/v1").WithMiddlewares(createWordCountMiddleware)
 	api.POST("/wc", handlePost)
 
 	server.AddGroup(api)
