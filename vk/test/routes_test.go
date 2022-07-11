@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
 	"github.com/suborbital/vektor/vk"
 	"github.com/suborbital/vektor/vk/test"
 	"github.com/suborbital/vektor/vlog"

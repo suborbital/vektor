@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+
 	"github.com/suborbital/vektor/vk"
 )
 
@@ -15,11 +16,11 @@ func AddRoutes(server *vk.Server) {
 	server.GET("/nf", HandleNotFound)
 	server.WebSocket("/sock", HandleSock)
 
-	v1 := vk.Group("/v1").Before(denyMiddleware, headerMiddleware)
+	v1 := vk.Group("/v1").WithMiddlewares(denyMiddleware, headerMiddleware)
 	v1.GET("/me", HandleMe)
 	v1.GET("/me/hack", HandleMe)
 
-	v2 := vk.Group("/v2").Before(setScopeMiddleware)
+	v2 := vk.Group("/v2").WithMiddlewares(setScopeMiddleware)
 	v2.GET("/you", HandleYou)
 	v2.GET("/mistake", HandleBadMistake)
 
@@ -33,40 +34,40 @@ func AddRoutes(server *vk.Server) {
 }
 
 // HandleFound returns 200
-func HandleFound(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func HandleFound(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("found!")
 
-	return vk.R(200, "gotcha"), nil
+	return vk.RespondString(ctx.Context, w, "gotcha", http.StatusOK)
 }
 
 // HandleNotFound returns 404
-func HandleNotFound(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
-	return nil, vk.E(http.StatusNotFound, "Not Found")
+func HandleNotFound(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) error {
+	return vk.E(http.StatusNotFound, "Not Found")
 }
 
 // HandleMe handles Me requests
-func HandleMe(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
-	return vk.R(200, struct{ Me string }{Me: "mario"}), nil
+func HandleMe(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
+	return vk.RespondJSON(ctx.Context, w, struct{ Me string }{Me: "mario"}, http.StatusOK)
 }
 
 // HandleYou handles You requests
-func HandleYou(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
+func HandleYou(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	ctx.Log.Info("calling you!")
 
-	return vk.R(201, "created, I guess"), nil
+	return vk.RespondJSON(ctx.Context, w, "created, I guess", http.StatusCreated)
 }
 
 // HandleBadMistake handles a bad mistake
-func HandleBadMistake(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
-	return nil, errors.New("this is a bad idea")
+func HandleBadMistake(_ http.ResponseWriter, _ *http.Request, _ *vk.Ctx) error {
+	return errors.New("this is a bad idea")
 }
 
 // HandleSock hands Sock requests
-func HandleSock(r *http.Request, ctx *vk.Ctx, conn *websocket.Conn) error {
+func HandleSock(_ *http.Request, _ *vk.Ctx, _ *websocket.Conn) error {
 	return nil
 }
 
 // HandleHTTP tests HTTP handlers
-func HandleHTTP(w http.ResponseWriter, r *http.Request) {
+func HandleHTTP(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }

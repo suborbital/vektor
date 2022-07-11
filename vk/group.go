@@ -12,7 +12,6 @@ type RouteGroup struct {
 	httpRoutes []httpRouteHandler
 	wsRoutes   []wsRouteHandler
 	middleware []Middleware
-	afterware  []Afterware
 }
 
 type httpRouteHandler struct {
@@ -33,55 +32,54 @@ func Group(prefix string) *RouteGroup {
 		httpRoutes: []httpRouteHandler{},
 		wsRoutes:   []wsRouteHandler{},
 		middleware: []Middleware{},
-		afterware:  []Afterware{},
 	}
 
 	return rg
 }
 
-// GET is a shortcut for server.Handle(http.MethodGet, path, handler)
-func (g *RouteGroup) GET(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodGet, path, handler)
+// GET is a shortcut for server.Handle(http.MethodGet, path, handler, middleware...)
+func (g *RouteGroup) GET(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodGet, path, WrapHandler(handler, middleware...))
 }
 
 // HEAD is a shortcut for server.Handle(http.MethodHead, path, handler)
-func (g *RouteGroup) HEAD(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodHead, path, handler)
+func (g *RouteGroup) HEAD(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodHead, path, WrapHandler(handler, middleware...))
 }
 
 // OPTIONS is a shortcut for server.Handle(http.MethodOptions, path, handler)
-func (g *RouteGroup) OPTIONS(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodOptions, path, handler)
+func (g *RouteGroup) OPTIONS(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodOptions, path, WrapHandler(handler, middleware...))
 }
 
 // POST is a shortcut for server.Handle(http.MethodPost, path, handler)
-func (g *RouteGroup) POST(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodPost, path, handler)
+func (g *RouteGroup) POST(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodPost, path, WrapHandler(handler, middleware...))
 }
 
 // PUT is a shortcut for server.Handle(http.MethodPut, path, handler)
-func (g *RouteGroup) PUT(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodPut, path, handler)
+func (g *RouteGroup) PUT(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodPut, path, WrapHandler(handler, middleware...))
 }
 
 // PATCH is a shortcut for server.Handle(http.MethodPatch, path, handler)
-func (g *RouteGroup) PATCH(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodPatch, path, handler)
+func (g *RouteGroup) PATCH(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodPatch, path, WrapHandler(handler, middleware...))
 }
 
 // DELETE is a shortcut for server.Handle(http.MethodDelete, path, handler)
-func (g *RouteGroup) DELETE(path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(http.MethodDelete, path, handler)
+func (g *RouteGroup) DELETE(path string, handler HandlerFunc, middleware ...Middleware) {
+	g.Handle(http.MethodDelete, path, WrapHandler(handler, middleware...))
 }
 
 // Handle adds a route to be handled
-func (g *RouteGroup) Handle(method, path string, handler HandlerFunc) {
-	g.addHttpRouteHandler(method, path, handler)
+func (g *RouteGroup) Handle(method, path string, handler HandlerFunc, middleware ...Middleware) {
+	g.addHttpRouteHandler(method, path, WrapHandler(handler, middleware...))
 }
 
-// WebSocket adds a websocket route to be handled
+// WebSocket adds a websocket route to be handled.
 func (g *RouteGroup) WebSocket(path string, handler WebSocketHandlerFunc) {
-	g.addWsRouteHandler(path, handler)
+	g.addHttpRouteHandler(http.MethodGet, path, WrapWebsocket(handler))
 }
 
 // AddGroup adds a group of routes to this group as a subgroup.
@@ -89,19 +87,15 @@ func (g *RouteGroup) WebSocket(path string, handler WebSocketHandlerFunc) {
 // with the resulting path being "/group.prefix/subgroup.prefix/route/path/here"
 func (g *RouteGroup) AddGroup(group *RouteGroup) {
 	g.httpRoutes = append(g.httpRoutes, group.httpRouteHandlers()...)
-	g.wsRoutes = append(g.wsRoutes, group.wsRouteHandlers()...)
 }
 
-// Before adds middleware to the group, which are applied to every handler in the group (called before the handler)
-func (g *RouteGroup) Before(middleware ...Middleware) *RouteGroup {
+// WithMiddlewares takes a list of Middlewares and will apply all of them to every handler in the group. Like in the
+// WrapHandler, the first middleware is going to be the closest to each of the handlers in the group.
+//
+// Use this for general middlewares like logging, panic recovery, error handling, and tracing. Use the individual
+// handler middlewares for endpoint specific things, like authentication.
+func (g *RouteGroup) WithMiddlewares(middleware ...Middleware) *RouteGroup {
 	g.middleware = append(g.middleware, middleware...)
-
-	return g
-}
-
-// After adds afterware to the group, which are applied to every handler in the group (called after the handler)
-func (g *RouteGroup) After(afterware ...Afterware) *RouteGroup {
-	g.afterware = append(g.afterware, afterware...)
 
 	return g
 }
@@ -118,27 +112,7 @@ func (g *RouteGroup) httpRouteHandlers() []httpRouteHandler {
 		augR := httpRouteHandler{
 			Method:  r.Method,
 			Path:    fullPath,
-			Handler: augmentHttpHandler(r.Handler, g.middleware, g.afterware),
-		}
-
-		routes[i] = augR
-	}
-
-	return routes
-}
-
-// wsRouteHandlers computes the "full" path for each handler, and creates
-// a HandlerFunc that chains together the group's middlewares
-// before calling the inner WebSocketHandlerFunc. It can be called 'recursively'
-// since groups can be added to groups
-func (g *RouteGroup) wsRouteHandlers() []wsRouteHandler {
-	routes := make([]wsRouteHandler, len(g.wsRoutes))
-
-	for i, r := range g.wsRoutes {
-		fullPath := fmt.Sprintf("%s%s", ensureLeadingSlash(g.prefix), ensureLeadingSlash(r.Path))
-		augR := wsRouteHandler{
-			Path:    fullPath,
-			Handler: augmentWsHandler(r.Handler, g.middleware, g.afterware),
+			Handler: WrapHandler(r.Handler, g.middleware...),
 		}
 
 		routes[i] = augR
@@ -155,15 +129,6 @@ func (g *RouteGroup) addHttpRouteHandler(method string, path string, handler Han
 	}
 
 	g.httpRoutes = append(g.httpRoutes, rh)
-}
-
-func (g *RouteGroup) addWsRouteHandler(path string, handler WebSocketHandlerFunc) {
-	rh := wsRouteHandler{
-		Path:    path,
-		Handler: handler,
-	}
-
-	g.wsRoutes = append(g.wsRoutes, rh)
 }
 
 func (g *RouteGroup) routePrefix() string {

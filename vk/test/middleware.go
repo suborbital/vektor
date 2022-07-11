@@ -12,30 +12,36 @@ type reqScope struct {
 	Foobar string `json:"foobar"`
 }
 
-func setScopeMiddleware(r *http.Request, ctx *vk.Ctx) error {
-	scope := reqScope{
-		ReqID:  ctx.RequestID(),
-		Foobar: "barbaz",
+func setScopeMiddleware(inner vk.HandlerFunc) vk.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *vk.Ctx) error {
+		scope := reqScope{
+			ReqID:  ctx.RequestID(),
+			Foobar: "barbaz",
+		}
+
+		ctx.UseScope(scope)
+
+		return inner(w, r, ctx)
 	}
-
-	ctx.UseScope(scope)
-
-	return nil
 }
 
-func denyMiddleware(r *http.Request, ctx *vk.Ctx) error {
-	if strings.Contains(r.URL.Path, "hack") {
-		ctx.Log.ErrorString("HACKER!!")
-		ctx.Log.Debug("but maybe they're nice")
+func denyMiddleware(inner vk.HandlerFunc) vk.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *vk.Ctx) error {
+		if strings.Contains(r.URL.Path, "hack") {
+			ctx.Log.ErrorString("HACKER!!")
+			ctx.Log.Debug("but maybe they're nice")
 
-		return vk.E(403, "begone, hacker")
+			return vk.E(http.StatusForbidden, "begone, hacker")
+		}
+
+		return inner(w, r, ctx)
 	}
-
-	return nil
 }
 
-func headerMiddleware(r *http.Request, ctx *vk.Ctx) error {
-	ctx.RespHeaders.Set("X-Vektor-Test", "foobar")
+func headerMiddleware(inner vk.HandlerFunc) vk.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *vk.Ctx) error {
+		ctx.RespHeaders.Set("X-Vektor-Test", "foobar")
 
-	return nil
+		return inner(w, r, ctx)
+	}
 }

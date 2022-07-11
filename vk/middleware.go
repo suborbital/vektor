@@ -1,43 +1,72 @@
 package vk
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 )
 
 // Middleware represents a handler that runs on a request before reaching its handler
-type Middleware func(*http.Request, *Ctx) error
-
-// Afterware represents a handler that runs on a request after the handler has dealt with the request
-type Afterware func(*http.Request, *Ctx)
+type Middleware func(HandlerFunc) HandlerFunc
 
 // ContentTypeMiddleware allows the content-type to be set
 func ContentTypeMiddleware(contentType string) Middleware {
-	return func(r *http.Request, ctx *Ctx) error {
-		ctx.RespHeaders.Set(contentTypeHeaderKey, contentType)
+	return func(inner HandlerFunc) HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
+			ctx.RespHeaders.Set(contentTypeHeaderKey, contentType)
 
-		return nil
+			return inner(w, r, ctx)
+		}
 	}
 }
 
-// CORSMiddleware enables CORS with the given domain for a route
-// pass "*" to allow all domains, or empty string to allow none
-func CORSMiddleware(domain string) Middleware {
-	return func(r *http.Request, ctx *Ctx) error {
-		enableCors(ctx, domain)
+// WrapHandler takes an inner HandlerFunc, and a list of Middlewares, and returns a resolved handler that wraps the
+// inner handler at the core with the passed in middlewares from first to last.
+//
+// For example in the following function call:
+// - WrapHandler(coreHandler, panics, errors, logs, traces)
+//
+// The wrap would look like this:
+// - incoming request -> traces -> logs -> errors -> panics -> coreHandler
+func WrapHandler(handler HandlerFunc, mw ...Middleware) HandlerFunc {
+	for _, m := range mw {
+		if m != nil {
+			handler = m(handler)
+		}
+	}
 
-		return nil
+	return handler
+}
+
+func WrapWebsocket(handler WebSocketHandlerFunc) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
+		upgrader := websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return E(http.StatusInternalServerError, err.Error())
+		}
+
+		return handler(r, ctx, conn)
 	}
 }
 
 // CORSHandler enables CORS for a route
 // pass "*" to allow all domains, or empty string to allow none
 func CORSHandler(domain string) HandlerFunc {
-	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
+	return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
 		enableCors(ctx, domain)
 
-		return nil, nil
+		return nil
 	}
 }
 
@@ -49,50 +78,32 @@ func enableCors(ctx *Ctx, domain string) {
 	}
 }
 
-// generate a HandlerFunc that passes the request through a set of Middleware first and Afterware after
-func augmentHttpHandler(inner HandlerFunc, middleware []Middleware, afterware []Afterware) HandlerFunc {
-	return func(r *http.Request, ctx *Ctx) (interface{}, error) {
-		defer func() {
-			// run the afterware (which cannot affect the response)
-			// even if something in the request chain fails
-			for _, a := range afterware {
-				a(r, ctx)
-			}
-		}()
+// ErrorMiddleware returns a middleware that wraps a handler.
+func ErrorMiddleware() Middleware {
+	return func(inner HandlerFunc) HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request, ctx *Ctx) error {
+			if err := inner(w, r, ctx); err != nil {
+				ctx.Log.ErrorString(fmt.Sprintf("ERROR: traceid: %s, msg: %s", ctx.RequestID(), err.Error()))
 
-		// run the middleware (which can error to stop progression)
-		for _, m := range middleware {
-			if err := m(r, ctx); err != nil {
-				return nil, err
+				if e, ok := err.(Error); ok {
+					// we received a trusted error, which means we can pass on the status and message set on it.
+					w.WriteHeader(e.Status())
+					errJson, err := json.Marshal(e)
+					if err != nil {
+						return errors.Wrap(err, "could not marshal error into json")
+					}
+
+					_, _ = w.Write(errJson)
+					return nil
+				}
+
+				// we received an error from someplace else, return a generic 500
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+				return nil
 			}
+
+			return nil
 		}
-
-		resp, err := inner(r, ctx)
-
-		return resp, err
-	}
-}
-
-// generate a WebSockerHandlerFunc that passes the request through a set of Middleware first and Afterware after
-func augmentWsHandler(inner WebSocketHandlerFunc, middleware []Middleware, afterware []Afterware) WebSocketHandlerFunc {
-	return func(r *http.Request, ctx *Ctx, conn *websocket.Conn) error {
-		defer func() {
-			// run the afterware (which cannot affect the response)
-			// even if something in the request chain fails
-			for _, a := range afterware {
-				a(r, ctx)
-			}
-		}()
-
-		// run the middleware (which can error to stop progression)
-		for _, m := range middleware {
-			if err := m(r, ctx); err != nil {
-				return err
-			}
-		}
-
-		err := inner(r, ctx, conn)
-
-		return err
 	}
 }

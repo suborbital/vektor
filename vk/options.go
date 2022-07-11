@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-envconfig"
+
 	"github.com/suborbital/vektor/vlog"
 )
 
