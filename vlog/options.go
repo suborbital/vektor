@@ -9,7 +9,7 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
-const defaultEnvPrefix = "VLOG"
+const defaultEnvPrefix = "VLOG_"
 
 // LogLevelTrace and others represent log levels
 const (
@@ -33,9 +33,9 @@ var levelStringMap = map[string]int{
 // Options represents the options for a VLogger
 type Options struct {
 	Level        int
-	LevelString  string `env:"_LOG_LEVEL"`
-	Filepath     string `env:"_LOG_FILE"`
-	LogPrefix    string `env:"_LOG_PREFIX"`
+	LevelString  string `env:"LOG_LEVEL"`
+	Filepath     string `env:"LOG_FILE"`
+	LogPrefix    string `env:"LOG_PREFIX"`
 	OutputWriter io.Writer
 	EnvPrefix    string
 	AppMeta      interface{}
