@@ -13,7 +13,7 @@ import (
 func main() {
 	server := vk.New(
 		vk.UseAppName("vk tester"),
-		vk.UseEnvPrefix("APP"),
+		vk.UseEnvPrefix("APP_"),
 		vk.UseHTTPPort(9090),
 		vk.UseInspector(func(r http.Request) {
 			fmt.Println("pre-router:", r.URL.Path)
