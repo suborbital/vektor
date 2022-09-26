@@ -9,7 +9,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.8.2
 	github.com/stretchr/testify v1.8.0
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
+	golang.org/x/crypto v0.0.0-20220924013350-4ba4fb4dd9e7
 )
 
 require (
