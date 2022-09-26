@@ -1,4 +1,4 @@
-![SOS_Vektor-Long-FullColour](https://user-images.githubusercontent.com/5942370/134704252-f70b44ce-64d8-41e3-9289-69b4024f88f8.png)
+## Vektor has been deprecated. It is being absorbed into the [E2 Core repo](https://github.com/suborbital/e2core). No further releases will be published in this project.
 
 ## Intro
 `Vektor` enables development of modern web services in Go. Vektor is designed to simplify the development of web APIs by eliminating boilerplate, using secure defaults, providing plug-in points, and offering common pieces needed for web apps. Vektor is fairly opinionated, but aims to provide flexibility in the right places.
