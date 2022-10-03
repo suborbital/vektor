@@ -1,3 +1,5 @@
+# Vektor has been deprecated. It is being absorbed into the [E2 Core repo](https://github.com/suborbital/e2core). No further releases will be published in this project.
+
 # The Vektor Guide 🗺
 
 Vektor's goal is to help you develop web services faster. Vektor handles much of the boilerplate needed to start building a Go server, so you can serve a request in less than 10 lines of code:
@@ -192,7 +194,7 @@ func HandleDelete(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 
 ## Response handling rules
 
-`vk` processes the `(interface{}, error)` returned by handler functions in a spcific way to ensure you always know how it will behave while still being able to use simple types in your code.
+`vk` processes the `(interface{}, error)` returned by handler functions in a specific way to ensure you always know how it will behave while still being able to use simple types in your code.
 
 ### Successful responses (i.e. the `interface{}` returned by handler functions):
 
@@ -255,7 +257,3 @@ The server's configured `vlog.Logger` object is included (`ctx.Log`) for logging
 Accessing the URL params for the request (such as `/users/:uuid`) is done with `ctx.Params`, and `ctx.RespHeaders` can be used to set response headers if needed.
 
 `Ctx` can also be used to easily get a request ID, with `ctx.RequestID()`. The Request ID is generated and cached on the object, and so calling it multiple times will return the same value. If you prefer to set your own Request ID, `ctx.UseRequestID()` will do the trick, however it will mean the first log message for the request will have a different ID as it uses the default ID generated for the `ctx`.
-
-## What's to come?
-
-`Vektor` is under active development. It intertwines closely with [Reactr](https://github.com/suborbital/reactr) and [Grav](https://github.com/suborbital/grav) to achieve Suborbital's goal of creating a platform for building scalable web services. Reactr and Vektor together can handle very large scale systems, and will be further integrated together to enable FaaS, WASM-based web service logic, and vastly improved developer experience and productivity.
