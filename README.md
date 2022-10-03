@@ -43,7 +43,7 @@ func HandlePing(r *http.Request, ctx *vk.Ctx) (interface{}, error) {
 	return PingResponse{Ping: "pong"}, nil
 }
 ```
-As you can see, handler functions don't actually concern themselves with _responding to a request_, rather just returning some data. `vk` is designed to handle the specifics of the HTTP response for you, all you need to do is return `(interface{}, error)`. Vektor handles the returned data based on a simple set of [rules](https://vektor.suborbital.dev/#response-handling-rules). The simplest form is this: **Want to respond with JSON? Just return a struct**. To control exactly how the response behaves, check out the [Response and Error types](https://vektor.suborbital.dev/#response-types).
+As you can see, handler functions don't actually concern themselves with _responding to a request_, rather just returning some data. `vk` is designed to handle the specifics of the HTTP response for you, all you need to do is return `(interface{}, error)`. Vektor handles the returned data based on a simple set of [rules](https://github.com/suborbital/vektor/blob/v0.6.0/vk/response.go). The simplest form is this: **Want to respond with JSON? Just return a struct**. To control exactly how the response behaves, check out the [Response and Error types](https://github.com/suborbital/vektor/blob/v0.6.0/vk/response.go).
 
 Mounting handlers to the server is just as easy:
 ```golang
