@@ -1,3 +1,5 @@
+# Vektor has been deprecated. It is being absorbed into the [E2 Core repo](https://github.com/suborbital/e2core). No further releases will be published in this project.
+
 # Testing Vektor Servers
 
 `vtest` is a powerful package for testing your Vektor servers without running an HTTP server bound to a port. `vtest` uses the standard Go `testing` package, which lets you integrate server route testing into your test suite. Let's explore a simple wordcount API server and add some tests to it.
