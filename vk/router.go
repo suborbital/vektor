@@ -102,7 +102,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// mountGroup adds a group of handlers to the httprouter
+// mountGroup adds a group of handlers to the httptreemux
 func (rt *Router) mountGroup(group *RouteGroup) {
 	for _, r := range group.httpRouteHandlers() {
 		rt.log.Debug("mounting route", r.Method, r.Path)
@@ -110,7 +110,7 @@ func (rt *Router) mountGroup(group *RouteGroup) {
 	}
 }
 
-// httpHandlerWrap returns an httprouter.Handle that uses the `inner` vk.HandleFunc to handle the request
+// httpHandlerWrap returns an httptreemux.Handle that uses the `inner` vk.HandleFunc to handle the request
 //
 // inner returns a body and an error;
 // the body can can be:
