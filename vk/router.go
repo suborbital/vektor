@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dimfeld/httptreemux/v5"
 	"github.com/gorilla/websocket"
-	"github.com/julienschmidt/httprouter"
 
 	"github.com/suborbital/vektor/vlog"
 )
@@ -31,8 +31,8 @@ type WebSocketHandlerFunc func(*http.Request, *Ctx, *websocket.Conn) error
 
 // Router handles the responses on behalf of the server
 type Router struct {
-	*RouteGroup                    // the "root" RouteGroup that is mounted at server start
-	hrouter     *httprouter.Router // the internal 'actual' router
+	*RouteGroup                         // the "root" RouteGroup that is mounted at server start
+	hrouter     *httptreemux.ContextMux // the internal 'actual' router
 
 	fallbackProxy *httputil.ReverseProxy
 	quietRoutes   map[string]bool
@@ -58,7 +58,7 @@ func NewRouter(logger *vlog.Logger, fallback string) *Router {
 
 	r := &Router{
 		RouteGroup:    Group(""),
-		hrouter:       httprouter.New(),
+		hrouter:       httptreemux.NewContextMux(),
 		fallbackProxy: proxy,
 		quietRoutes:   map[string]bool{},
 		finalizeOnce:  sync.Once{},
@@ -70,7 +70,7 @@ func NewRouter(logger *vlog.Logger, fallback string) *Router {
 
 // HandleHTTP handles a classic Go HTTP handlerFunc
 func (rt *Router) HandleHTTP(method, path string, handler http.HandlerFunc) {
-	rt.hrouter.Handle(method, path, func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	rt.hrouter.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
 		handler(w, r)
 	})
 }
@@ -85,10 +85,10 @@ func (rt *Router) Finalize() {
 // ServeHTTP serves HTTP requests
 func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// check to see if the router has a handler for this path
-	handler, params, _ := rt.hrouter.Lookup(r.Method, r.URL.Path)
+	result, found := rt.hrouter.Lookup(w, r)
 
-	if handler != nil {
-		handler(w, r, params)
+	if found {
+		rt.hrouter.ServeLookupResult(w, r, result)
 	} else {
 		if rt.fallbackProxy != nil {
 			rt.fallbackProxy.ServeHTTP(w, r)
@@ -97,8 +97,8 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		rt.log.Debug("not handled:", r.Method, r.URL.String())
 
-		// let httprouter handle the fallthrough cases
-		rt.hrouter.ServeHTTP(w, r)
+		// let httptreemux handle the fallthrough cases
+		rt.hrouter.ServeLookupResult(w, r, result)
 	}
 }
 
@@ -106,7 +106,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (rt *Router) mountGroup(group *RouteGroup) {
 	for _, r := range group.httpRouteHandlers() {
 		rt.log.Debug("mounting route", r.Method, r.Path)
-		rt.hrouter.Handle(r.Method, r.Path, rt.httpHandlerWrap(r.Handler))
+		rt.hrouter.TreeMux.Handle(r.Method, r.Path, rt.httpHandlerWrap(r.Handler))
 	}
 }
 
@@ -121,9 +121,8 @@ func (rt *Router) mountGroup(group *RouteGroup) {
 // the error can be:
 // - a vk.Error type (status and message are written to w)
 // - any other error object (status 500 and error.Error() are written to w)
-//
-func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (rt *Router) httpHandlerWrap(inner HandlerFunc) httptreemux.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		// create a context handleWrap the configured logger
 		// (and use the ctx.Log for all remaining logging
 		// in case a scope was set on it)
@@ -143,9 +142,10 @@ func (rt *Router) httpHandlerWrap(inner HandlerFunc) httprouter.Handle {
 
 // canHandle returns true if there's a registered handler that can
 // handle the method and path provided or not
-func (rt *Router) canHandle(method, path string) bool {
-	handler, _, _ := rt.hrouter.Lookup(method, path)
-	return handler != nil
+func (rt *Router) canHandle(r *http.Request) bool {
+	_, canHandleIt := rt.hrouter.Lookup(nil, r)
+
+	return canHandleIt
 }
 
 // useQuietRoutes sets the 'quiet' routes for the router's logging

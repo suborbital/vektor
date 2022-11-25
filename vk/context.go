@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/julienschmidt/httprouter"
 
 	"github.com/suborbital/vektor/vlog"
 )
@@ -17,14 +16,14 @@ type ctxKey string
 type Ctx struct {
 	Context     context.Context
 	Log         *vlog.Logger
-	Params      httprouter.Params
+	Params      map[string]string
 	RespHeaders http.Header
 	requestID   string
 	scope       interface{}
 }
 
 // NewCtx creates a new Ctx
-func NewCtx(log *vlog.Logger, params httprouter.Params, headers http.Header) *Ctx {
+func NewCtx(log *vlog.Logger, params map[string]string, headers http.Header) *Ctx {
 	ctx := &Ctx{
 		Context:     context.Background(),
 		Log:         log,

@@ -51,7 +51,7 @@ func NewWCResponse(wc Wordcount) *WCResponse {
 func handlePost(w http.ResponseWriter, _ *http.Request, ctx *vk.Ctx) error {
 	wc := ctx.Get(wordCountCtxKey).(Wordcount)
 
-	return vk.RespondJSON(ctx.Context, w, NewWCResponse(wc), http.StatusOK)
+	return vk.RespondJSON(w, NewWCResponse(wc), http.StatusOK)
 }
 
 func main() {

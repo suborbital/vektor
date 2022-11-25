@@ -44,5 +44,5 @@ func TestMethodNotAllowed(t *testing.T) {
 
 	vt.Do(req, t).
 		AssertStatus(http.StatusMethodNotAllowed).
-		AssertBodyString("Method Not Allowed\n")
+		AssertBodyString("")
 }

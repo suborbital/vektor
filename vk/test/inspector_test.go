@@ -25,7 +25,7 @@ func TestInspector(t *testing.T) {
 	p := "/somepath"
 
 	server.GET(p, func(w http.ResponseWriter, r *http.Request, c *vk.Ctx) error {
-		return vk.RespondJSON(c.Context, w, "", http.StatusOK)
+		return vk.RespondJSON(w, "", http.StatusOK)
 	})
 
 	vt := vtest.New(server)
