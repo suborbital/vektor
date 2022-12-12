@@ -32,7 +32,7 @@ func (vts *VektorSuite) SetupTest() {
 	server := vk.New(
 		vk.UseLogger(logger),
 		vk.UseAppName("vk tester"),
-		vk.UseEnvPrefix("APP_"),
+		vk.UseEnvPrefix("APP"),
 	)
 
 	test.AddRoutes(server)

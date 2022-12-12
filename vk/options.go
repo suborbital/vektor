@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net/http"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-envconfig"
@@ -17,10 +18,10 @@ type RouterWrapper func(handler http.Handler) http.Handler
 
 // Options are the available options for Server
 type Options struct {
-	AppName         string `env:"_APP_NAME"`
-	Domain          string `env:"_DOMAIN"`
-	HTTPPort        int    `env:"_HTTP_PORT"`
-	TLSPort         int    `env:"_TLS_PORT"`
+	AppName         string `env:"APP_NAME"`
+	Domain          string `env:"DOMAIN"`
+	HTTPPort        int    `env:"HTTP_PORT"`
+	TLSPort         int    `env:"TLS_PORT"`
 	TLSConfig       *tls.Config
 	EnvPrefix       string
 	QuietRoutes     []string
@@ -75,6 +76,11 @@ func (o *Options) ShouldUseHTTP() bool {
 
 // finalize "locks in" the options by overriding any existing options with the version from the environment, and setting the default logger if needed
 func (o *Options) finalize(prefix string) {
+	// Append trailing _ if prefix is missing one
+	if !strings.HasSuffix(prefix, "_") {
+		prefix = prefix + "_"
+	}
+
 	if o.Logger == nil {
 		o.Logger = vlog.Default(vlog.EnvPrefix(prefix))
 	}
