@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-const defaultEnvPrefix = "VK"
+const defaultEnvPrefix = "VK_"
 
 // Server represents a vektor API server
 type Server struct {
